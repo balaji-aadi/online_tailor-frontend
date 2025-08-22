@@ -1,6 +1,6 @@
-import React, { useState, createContext, useContext } from 'react';
-import { Outlet } from 'react-router-dom';
-import { Menu, X, Globe, User, Settings, LogOut } from 'lucide-react';
+import  { useState, createContext, useContext } from 'react';
+import { Link, Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { Globe, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,6 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import logo from '../../public/Assests/khyate_logo.png'
+import { useAuth } from '../contexts/AuthContext';
 
 // Language Context
 const LanguageContext = createContext();
@@ -24,6 +26,17 @@ export const useLanguage = () => {
 const Layout = () => {
   const [language, setLanguage] = useState('en');
   const [direction, setDirection] = useState('ltr');
+  const router = useNavigate()
+  const { user } = useAuth();
+
+  if(!user){
+    return <Navigate to="/login" replace />;
+  }
+
+  const handleLogout = () => {
+    router('/login')
+    localStorage.removeItem('user')
+  };
 
   const toggleLanguage = () => {
     if (language === 'en') {
@@ -58,25 +71,22 @@ const Layout = () => {
 
   const t = translations[language];
 
+
   return (
     <LanguageContext.Provider value={{ language, direction, toggleLanguage, t }}>
       <div className={`min-h-screen bg-background ${direction === 'rtl' ? 'font-arabic' : 'font-inter'}`}>
         {/* Top Header */}
         <header className="bg-card border-b border-border shadow-soft">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className=" px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               {/* Logo */}
-              <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                <div className="bg-gradient-hero p-2 rounded-xl shadow-gold">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <div className="w-4 h-4 bg-white rounded-sm"></div>
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-foreground">UAE Tailor</h1>
-                  <p className="text-xs text-muted-foreground">Professional Tailoring Platform</p>
-                </div>
-              </div>
+              <Link to={user?.type === "admin" ? '/admin' : '/tailor'} className="flex items-center cursor-pointer space-x-4 rtl:space-x-reverse">
+                <img
+                  src={logo}
+                  alt="Tailor Logo"
+                  className="h-12 w-auto"
+                />
+              </Link>
 
               {/* Right Side Actions */}
               <div className="flex items-center space-x-4 rtl:space-x-reverse">
@@ -109,7 +119,7 @@ const Layout = () => {
                       <span>{t.settings}</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
                       <span>{t.logout}</span>
                     </DropdownMenuItem>
@@ -121,9 +131,9 @@ const Layout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1">
-          <Outlet />
-        </main>
+      <main className="flex-1">
+        <Outlet />
+      </main>
       </div>
     </LanguageContext.Provider>
   );

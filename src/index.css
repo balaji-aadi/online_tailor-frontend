@@ -2,134 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-/* UAE Tailor Application Design System - Modern with Middle Eastern Luxury */
+/* UAE Tailor Application Design System - Cultural Minimalism with UAE Heritage */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    /* Core Backgrounds */
-    --background: 220 15% 97%;
-    --foreground: 215 25% 15%;
+    /* UAE Cultural Color Palette from Design Document */
+    --gold-primary: 38 30% 60%; /* #C5A572 */
+    --navy-primary: 218 25% 18%; /* #1A2332 */
+    --ivory-background: 38 67% 98%; /* #FEFCF8 */
+    --teal-accent: 178 45% 34%; /* #2D7D7A */
+    
+    /* Core Backgrounds - Using UAE Ivory */
+    --background: var(--ivory-background);
+    --foreground: var(--navy-primary);
 
     /* Cards & Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-    --card-hover: 220 15% 98%;
+    --card-foreground: var(--navy-primary);
+    --card-hover: 38 50% 96%;
 
     /* Popovers & Overlays */
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: var(--navy-primary);
 
-    /* UAE Brand Colors - Deep Blue & Gold */
-    --primary: 215 85% 25%;
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 215 85% 20%;
-    --primary-light: 215 70% 45%;
+    /* UAE Brand Colors - Gold & Navy as specified */
+    --primary: var(--gold-primary);
+    --primary-foreground: var(--navy-primary);
+    --primary-hover: 38 30% 55%;
+    --primary-light: 38 30% 70%;
 
-    /* Gold Accent - UAE Luxury */
-    --gold: 45 90% 50%;
-    --gold-foreground: 215 25% 15%;
-    --gold-light: 45 70% 85%;
-    --gold-dark: 45 100% 35%;
-
-    /* Secondary - Warm Neutrals */
-    --secondary: 220 10% 92%;
-    --secondary-foreground: 215 25% 25%;
-    --secondary-hover: 220 10% 88%;
+    /* Navy as secondary brand color */
+    --secondary: var(--navy-primary);
+    --secondary-foreground: 0 0% 98%;
+    --secondary-hover: 218 25% 15%;
 
     /* Muted Elements */
-    --muted: 220 10% 95%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 38 30% 95%;
+    --muted-foreground: 218 15% 45%;
 
-    /* Accent - Complement to Primary */
-    --accent: 200 25% 88%;
-    --accent-foreground: 215 85% 25%;
+    /* Accent - Teal as specified */
+    --accent: var(--teal-accent);
+    --accent-foreground: 0 0% 98%;
 
-    /* Status Colors */
-    --success: 145 70% 40%;
+    /* Status Colors - Adjusted to fit cultural palette */
+    --success: var(--teal-accent);
     --success-foreground: 0 0% 98%;
-    --warning: 35 90% 55%;
-    --warning-foreground: 215 25% 15%;
-    --destructive: 0 75% 55%;
+    --warning: 38 70% 55%;
+    --warning-foreground: var(--navy-primary);
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
     /* Interactive Elements */
-    --border: 220 15% 88%;
-    --input: 220 15% 95%;
-    --ring: 215 85% 25%;
+    --border: 38 20% 88%;
+    --input: 38 30% 95%;
+    --ring: var(--gold-primary);
 
-    /* Gradients */
+    /* Gradients - Soft and barely perceptible as specified */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
-    --gradient-gold: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 50%, hsl(var(--gold)) 100%);
+    --gradient-navy: linear-gradient(135deg, hsl(var(--navy-primary)), hsl(218 25% 22%));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--navy-primary)) 0%, hsl(218 25% 25%) 50%, hsl(var(--gold-primary)) 100%);
     --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--card-hover)) 100%);
 
-    /* Shadows */
-    --shadow-sm: 0 2px 4px -1px hsl(var(--primary) / 0.1);
-    --shadow-md: 0 8px 25px -5px hsl(var(--primary) / 0.15);
-    --shadow-lg: 0 25px 50px -12px hsl(var(--primary) / 0.25);
-    --shadow-gold: 0 8px 25px -5px hsl(var(--gold) / 0.3);
+    /* Shadows - More subtle as per minimalism philosophy */
+    --shadow-sm: 0 1px 2px -1px hsl(var(--navy-primary) / 0.1);
+    --shadow-md: 0 4px 12px -2px hsl(var(--navy-primary) / 0.1);
+    --shadow-lg: 0 12px 24px -4px hsl(var(--navy-primary) / 0.1);
+    --shadow-gold: 0 4px 12px -2px hsl(var(--gold-primary) / 0.2);
 
-    /* Animations */
+    /* Animations - Smooth and elegant */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --radius: 0.75rem;
+    --radius: 0.5rem; /* Slightly smaller radius for minimalism */
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: var(--ivory-background);
+    --sidebar-foreground: var(--navy-primary);
+    --sidebar-primary: var(--gold-primary);
+    --sidebar-primary-foreground: var(--navy-primary);
+    --sidebar-accent: var(--teal-accent);
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 38 20% 88%;
+    --sidebar-ring: var(--gold-primary);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: var(--navy-primary);
+    --foreground: 38 30% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 218 25% 15%;
+    --card-foreground: 38 30% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 218 25% 15%;
+    --popover-foreground: 38 30% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: var(--gold-primary);
+    --primary-foreground: var(--navy-primary);
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 38 30% 20%;
+    --secondary-foreground: 38 30% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 218 15% 25%;
+    --muted-foreground: 38 20% 70%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: var(--teal-accent);
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 218 15% 25%;
+    --input: 218 15% 25%;
+    --ring: var(--gold-primary);
+    
+    --sidebar-background: var(--navy-primary);
+    --sidebar-foreground: 38 30% 98%;
+    --sidebar-primary: var(--gold-primary);
+    --sidebar-primary-foreground: var(--navy-primary);
+    --sidebar-accent: var(--teal-accent);
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 218 15% 25%;
+    --sidebar-ring: var(--gold-primary);
   }
 }
 
@@ -140,80 +134,84 @@
 
   body {
     @apply bg-background text-foreground font-inter;
+    line-height: 1.6; /* Improved readability */
   }
 
-  /* Arabic RTL Support */
+  /* Arabic RTL Support with enhanced styling */
   [dir="rtl"] {
     font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+    letter-spacing: 0; /* Arabic fonts don't need letter spacing */
   }
 
-  /* Custom scrollbar */
+  /* Enhanced scrollbar with gold accent */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
     background: hsl(var(--muted));
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 3px;
+    background: hsl(var(--gold-primary) / 0.3);
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.5);
+    background: hsl(var(--gold-primary) / 0.5);
   }
 }
 
 @layer components {
-  /* Premium Button Variants */
+  /* Premium Button Variants - Updated to match design doc */
   .btn-gold {
-    @apply bg-gradient-to-r from-gold to-gold-dark text-gold-foreground 
-           shadow-lg hover:shadow-gold transform hover:scale-105 
-           transition-all duration-300 font-semibold;
+    @apply bg-gradient-to-r from-gold-primary to-primary-hover 
+           text-primary-foreground shadow-md hover:shadow-gold 
+           transform hover:scale-[1.02] transition-all duration-300 
+           font-semibold rounded-md;
   }
 
-  .btn-hero {
-    @apply bg-gradient-to-r from-primary via-primary-light to-gold 
-           text-primary-foreground shadow-lg hover:shadow-lg 
-           transform hover:scale-105 transition-all duration-300 font-semibold;
+  .btn-navy {
+    @apply bg-gradient-to-r from-navy-primary to-secondary-hover 
+           text-secondary-foreground shadow-md hover:shadow-lg 
+           transform hover:scale-[1.02] transition-all duration-300 
+           font-semibold rounded-md;
   }
 
   .btn-premium {
     @apply bg-gradient-to-r from-primary to-primary-hover 
            text-primary-foreground shadow-md hover:shadow-lg 
-           transform hover:scale-105 transition-all duration-300 font-medium;
+           transform hover:scale-[1.02] transition-all duration-300 
+           font-medium rounded-md;
   }
 
-  /* Card Variants */
+  /* Card Variants - More minimalistic */
   .card-elevated {
-    @apply bg-gradient-to-br from-card to-card-hover 
-           shadow-md hover:shadow-lg border border-border
-           transform hover:scale-[1.02] transition-all duration-300;
+    @apply bg-card border border-border rounded-lg
+           shadow-sm hover:shadow-md transition-all duration-300;
   }
 
   .card-premium {
-    @apply bg-gradient-to-br from-card to-card-hover 
-           shadow-lg hover:shadow-xl border border-gold/20
-           transform hover:scale-[1.02] transition-all duration-300;
+    @apply bg-card border border-gold-primary/20 rounded-lg
+           shadow-md hover:shadow-lg transition-all duration-300;
   }
 
-  /* Status Indicators */
+  /* Status Indicators - More minimal */
   .status-active {
     @apply bg-success/10 text-success border border-success/20 
-           px-3 py-1 rounded-full text-sm font-medium;
+           px-2 py-1 rounded-full text-xs font-medium;
   }
 
   .status-pending {
     @apply bg-warning/10 text-warning-foreground border border-warning/20 
-           px-3 py-1 rounded-full text-sm font-medium;
+           px-2 py-1 rounded-full text-xs font-medium;
   }
 
   .status-inactive {
     @apply bg-destructive/10 text-destructive border border-destructive/20 
-           px-3 py-1 rounded-full text-sm font-medium;
+           px-2 py-1 rounded-full text-xs font-medium;
   }
 
   /* Gradient Backgrounds */
@@ -225,13 +223,13 @@
     background: var(--gradient-primary);
   }
 
-  .bg-gold-gradient {
-    background: var(--gradient-gold);
+  .bg-navy-gradient {
+    background: var(--gradient-navy);
   }
 
   /* Animation Utilities */
   .animate-slide-up {
-    animation: slideUp 0.5s ease-out;
+    animation: slideUp 0.4s ease-out;
   }
 
   .animate-fade-in {
@@ -242,9 +240,33 @@
     animation: scaleIn 0.2s ease-out;
   }
 
-  /* Hover Effects */
+  /* Fabric-inspired animations */
+  .animate-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .animate-ripple:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: hsl(var(--gold-primary) / 0.4);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+  
+  .animate-ripple:focus:after {
+    animation: ripple 1s ease-out;
+  }
+
+  /* Hover Effects - More subtle for minimalism */
   .hover-lift {
-    @apply transition-transform duration-300 hover:scale-105 hover:shadow-lg;
+    @apply transition-transform duration-300 hover:translate-y-[-2px];
   }
 
   .hover-glow {
@@ -253,7 +275,7 @@
 }
 
 @layer utilities {
-  /* Custom Shadows */
+  /* Custom Shadows - Softer as per design doc */
   .shadow-soft {
     box-shadow: var(--shadow-sm);
   }
@@ -270,7 +292,7 @@
     box-shadow: var(--shadow-gold);
   }
 
-  /* RTL Support */
+  /* Enhanced RTL Support */
   .rtl\:text-right[dir="rtl"] {
     text-align: right;
   }
@@ -282,13 +304,26 @@
   .rtl\:flex-row-reverse[dir="rtl"] {
     flex-direction: row-reverse;
   }
+  
+  .rtl\:space-x-reverse[dir="rtl"] > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+
+  /* Micro-interaction utilities */
+  .micro-interaction {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .micro-interaction:hover {
+    @apply transform scale-[1.02];
+  }
 }
 
 /* Keyframe Animations */
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -308,10 +343,49 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
   to {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+/* Loading animation mimicking thread weaving */
+@keyframes weave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-weave {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--gold-primary) / 0.1),
+    hsl(var(--gold-primary) / 0.3),
+    hsl(var(--gold-primary) / 0.1)
+  );
+  background-size: 200% 200%;
+  animation: weave 1.5s ease-in-out infinite;
 }
