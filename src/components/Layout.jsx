@@ -10,7 +10,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import logo from '../../public/Assests/khyate_logo.png'
-import { useAuth } from '../contexts/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../store/slices/storeSlice';
+import { useLoading } from '../loader/LoaderContext';
 
 // Language Context
 const LanguageContext = createContext();
@@ -26,16 +28,18 @@ export const useLanguage = () => {
 const Layout = () => {
   const [language, setLanguage] = useState('en');
   const [direction, setDirection] = useState('ltr');
-  const router = useNavigate()
-  const { user } = useAuth();
-
-  if(!user){
-    return <Navigate to="/login" replace />;
-  }
+  const user = useSelector((state) => state.store.currentUser);
+  const dispatch = useDispatch();
+  const {handleLoading} = useLoading();
 
   const handleLogout = () => {
-    router('/login')
-    localStorage.removeItem('user')
+    handleLoading(true);
+    try {
+      dispatch(logout());
+    } catch (err) {
+      console.log(err);
+    }
+    handleLoading(false);
   };
 
   const toggleLanguage = () => {
@@ -80,7 +84,7 @@ const Layout = () => {
           <div className=" px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               {/* Logo */}
-              <Link to={user?.type === "admin" ? '/admin' : '/tailor'} className="flex items-center cursor-pointer space-x-4 rtl:space-x-reverse">
+              <Link to={user?.user_role?.name === "admin" ? '/admin/dashboard' : '/tailor/dashboard'} className="flex items-center cursor-pointer space-x-4 rtl:space-x-reverse">
                 <img
                   src={logo}
                   alt="Tailor Logo"

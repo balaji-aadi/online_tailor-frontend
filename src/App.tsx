@@ -4,8 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
-import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { LoaderProvider } from "./loader/LoaderContext.jsx";
+import Loader from "./loader/Loader.jsx";
+import { Provider } from "react-redux";
+import { persistor, store } from "./store/store.js";
+import { ToastContainer, Bounce } from "react-toastify";
+import { PersistGate } from "redux-persist/integration/react";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard.jsx";
@@ -16,7 +21,7 @@ import ContentManagement from "./pages/admin/ContentManagement.jsx";
 import Disputes from "./pages/admin/Disputes.jsx";
 import Reports from "./pages/admin/Reports.jsx";
 import AdminSettings from "./pages/admin/Settings.jsx";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Tailor Pages
 import TailorDashboard from "./pages/tailor/Dashboard.jsx";
@@ -34,62 +39,15 @@ import TailorPortal from "./pages/tailor/TailorPortal.jsx";
 import SignIn from "./pages/auth/SignIn.jsx";
 import Register from "./pages/auth/Register.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
+import { PublicRoute } from "./ProtectedRoute.jsx";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 
 const queryClient = new QueryClient();
-
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (allowedRoles && !allowedRoles.includes(user.type)) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
-
-// Public Route Component (redirect if already logged in)
-const PublicRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (user) {
-    // Redirect based on user type
-    switch (user.type) {
-      case "admin":
-        return <Navigate to="/admin" replace />;
-      case "tailor":
-        return <Navigate to="/tailor/dashboard" replace />;
-      default:
-        return <Navigate to="/login" replace />;
-    }
-  }
-
-  return children;
-};
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Auth Routes */}
+      {/* Auth Routes - Public */}
       <Route
         path="/login"
         element={
@@ -99,7 +57,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/register"
+        path="/tailor/register"
         element={
           <PublicRoute>
             <Register />
@@ -114,20 +72,19 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-      {/* Public Routes */}
-      <Route path="/" element={<Layout />}>
-        {/* <Route index element={<Index />} /> */}
 
+      {/* Protected Routes with Layout - Only wrap the parent with ProtectedRoute */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
         {/* Admin Portal Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminPortal />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<AdminDashboard />} />
+        <Route path="admin" element={<AdminPortal />}>
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="verification" element={<TailorVerification />} />
@@ -135,18 +92,12 @@ const AppRoutes = () => {
           <Route path="disputes" element={<Disputes />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 
         {/* Tailor Portal Routes */}
-        <Route
-          path="/tailor"
-          element={
-            <ProtectedRoute allowedRoles={["tailor"]}>
-              <TailorPortal />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<TailorDashboard />} />
+        <Route path="tailor" element={<TailorPortal />}>
+          <Route path="dashboard" element={<TailorDashboard />} />
           <Route path="profile" element={<TailorProfile />} />
           <Route path="orders" element={<Orders />} />
           <Route path="services" element={<Services />} />
@@ -154,7 +105,11 @@ const AppRoutes = () => {
           <Route path="calendar" element={<Calendar />} />
           <Route path="analytics" element={<TailorAnalytics />} />
           <Route path="messages" element={<Messages />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
+
+        {/* Redirect root to appropriate dashboard based on user role */}
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
 
       {/* Catch-all route */}
@@ -165,15 +120,35 @@ const AppRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <TooltipProvider>
+          <Toaster />
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+            transition={Bounce}
+          />
+          <Sonner />
+          <BrowserRouter>
+            <LoaderProvider>
+              <Loader />
+              <AuthProvider>
+                <AppRoutes />
+              </AuthProvider>
+            </LoaderProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </PersistGate>
+    </Provider>
   </QueryClientProvider>
 );
 

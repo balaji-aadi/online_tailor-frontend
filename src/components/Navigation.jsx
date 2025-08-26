@@ -65,7 +65,7 @@ const Navigation = ({ type = 'admin' }) => {
   const adminNavItems = [
     {
       title: language === 'en' ? 'Dashboard' : 'لوحة التحكم',
-      href: '/admin',
+      href: '/admin/dashboard',
       icon: LayoutDashboard,
       exact: true
     },
@@ -112,7 +112,7 @@ const Navigation = ({ type = 'admin' }) => {
   const tailorNavItems = [
     {
       title: language === 'en' ? 'Dashboard' : 'لوحة التحكم',
-      href: '/tailor',
+      href: '/tailor/dashboard',
       icon: LayoutDashboard,
       exact: true
     },
@@ -251,9 +251,9 @@ const Navigation = ({ type = 'admin' }) => {
             aria-label={isCollapsed ? (language === 'en' ? 'Expand sidebar' : 'توسيع الشريط الجانبي') : (language === 'en' ? 'Collapse sidebar' : 'طي الشريط الجانبي')}
           >
             {direction === 'rtl' ? (
-              isCollapsed ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />
+              isCollapsed ? <ChevronLeft className="w-5 h-5 hover:text-white" /> : <ChevronRight className="w-5 h-5 hover:text-white" />
             ) : (
-              isCollapsed ? <ChevronRight className="w-5 h-5 ml-2" /> : <ChevronLeft className="w-5 h-5" />
+              isCollapsed ? <ChevronRight className="w-5 h-5 ml-2 hover:text-white" /> : <ChevronLeft className="w-5 h-5 hover:text-white" />
             )}
           </button>
         </div>

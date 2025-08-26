@@ -6,7 +6,7 @@ const TailorPortal = () => {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar Navigation */}
-      <div className="w-64 flex-shrink-0">
+      <div className="flex-shrink-0">
         <Navigation type="tailor" />
       </div>
       

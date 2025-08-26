@@ -39,3 +39,8 @@
 .read-the-docs {
   color: #888;
 }
+
+.PhoneInputInput:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

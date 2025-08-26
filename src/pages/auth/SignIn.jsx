@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Scissors, Settings, Eye, EyeOff, ChevronDown, ChevronUp, Languages } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../../public/Assests/khyate_logo.png'
+import { useLoading } from '../../loader/LoaderContext';
+import { useDispatch } from 'react-redux';
+import { login } from "../../store/slices/storeSlice";
+import { toast } from 'react-toastify';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -17,10 +19,9 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
-  const [language, setLanguage] = useState('en'); // 'ar' for Arabic, 'en' for English
-
-  const { login } = useAuth();
-  const { toast } = useToast();
+  const [language, setLanguage] = useState('en');
+  const { handleLoading } = useLoading();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Translations
@@ -46,6 +47,8 @@ const SignIn = () => {
       hideCredentials: "إخفاء بيانات الحسابات",
       adminLabel: "مدير النظام",
       tailorLabel: "خياط",
+      tailorRegisterHint: "التسجيل متاح فقط للخياطين",
+      adminRegisterHint: "حسابات المدير يتم إنشاؤها بواسطة النظام",
     },
     en: {
       appName: "Khyate",
@@ -68,6 +71,7 @@ const SignIn = () => {
       hideCredentials: "Hide Demo Credentials",
       adminLabel: "System Admin",
       tailorLabel: "Tailor",
+      tailorRegisterHint: "Registration is only available for tailors",
     }
   };
 
@@ -82,51 +86,33 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const result = await login(email, password, userType);
-      if (result.success) {
-        toast({
-          title: language === 'ar' ? 'تم تسجيل الدخول بنجاح' : 'Login Successful',
-          description: language === 'ar' ? `مرحباً ${result.user.name}` : `Welcome ${result.user.name}`,
-        });
-
-        // Redirect based on user type
-        switch (result.user.type) {
+      handleLoading(true);
+      try {
+        const res = await dispatch(login({emailOrPhone:email,password})).unwrap();
+        console.log(res.data)
+        const result = res?.data?.user;
+        switch (result?.user_role?.name) {
           case 'admin':
-            navigate('/admin');
+            navigate('/admin/dashboard');
             break;
           case 'tailor':
-            navigate('/tailor');
+            navigate('/tailor/dashboard');
             break;
           default:
             navigate('/');
         }
-      } else {
-        toast({
-          title: language === 'ar' ? 'خطأ في تسجيل الدخول' : 'Login Error',
-          description: result.error,
-          variant: 'destructive'
-        });
+      } catch (e) {
+        console.error("Login error:", e);
+        toast.error("Invalid credentials. Please try again.");
+      } finally {
+        handleLoading(false);
       }
-    } catch (error) {
-      toast({
-        title: language === 'ar' ? 'خطأ' : 'Error',
-        description: language === 'ar' ? 'حدث خطأ غير متوقع' : 'An unexpected error occurred',
-        variant: 'destructive'
-      });
-    } finally {
+    }catch(err){
+      console.log(err)
+    }
+    finally {
       setLoading(false);
     }
-  };
-
-  const demoAccounts = [
-    { email: 'admin@tailorconnect.ae', type: 'admin', label: t.adminLabel, icon: Settings },
-    { email: 'tailor@tailorconnect.ae', type: 'tailor', label: t.tailorLabel, icon: Scissors },
-  ];
-
-  const fillDemoAccount = (account) => {
-    setEmail(account.email);
-    setPassword('password123');
-    setUserType(account.type);
   };
 
   // Animation variants
@@ -204,20 +190,6 @@ const SignIn = () => {
             <p className="text-muted-foreground mt-2">{t.tagline}</p>
           </motion.div>
 
-          {/* Demo Accounts Toggle */}
-          <motion.div
-            variants={itemVariants}
-            className="flex justify-center"
-          >
-            <Button
-              variant="outline"
-              onClick={() => setShowCredentials(!showCredentials)}
-              className="gap-2 w-full"
-            >
-              {showCredentials ? t.hideCredentials : t.showCredentials}
-              {showCredentials ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-          </motion.div>
 
           <AnimatePresence>
             {showCredentials && (
@@ -332,12 +304,6 @@ const SignIn = () => {
                   >
                     {t.forgotPassword}
                   </Link>
-                  <p className="text-sm text-muted-foreground">
-                    {t.noAccount}{' '}
-                    <Link to="/register" className="text-primary hover:underline">
-                      {t.createAccount}
-                    </Link>
-                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -349,12 +315,12 @@ const SignIn = () => {
             transition={{ delay: 0.4 }}
             className="text-center"
           >
-            <Link
+            {/* <Link
               to="/"
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               {t.backToHome}
-            </Link>
+            </Link> */}
           </motion.div>
         </div>
       </div>

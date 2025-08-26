@@ -189,12 +189,12 @@ const ForgotPassword = () => {
               transition={{ delay: 0.4 }}
               className="text-center"
             >
-              <Link
+              {/* <Link
                 to="/"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 {t.backToHome}
-              </Link>
+              </Link> */}
             </motion.div>
           </div>
         </div>
