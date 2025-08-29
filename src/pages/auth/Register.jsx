@@ -1,20 +1,22 @@
 import { useFormik } from 'formik';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import { Scissors, Languages } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { Scissors, Languages, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import logo from '../../../public/Assests/khyate_logo.png';
 import { useState, useEffect } from 'react';
 import InputField from '../../components/ui/InputField';
+import { FileInputField } from '../../components/ui/ImageInputField';
+import { useLoading } from '../../loader/LoaderContext';
+import AuthApi from '../../api/auth.api';
+import MasterApi from '../../api/master.api';
+import { toast } from 'react-toastify';
 
 // Arabic translations
-const arabicTranslations = {
-  // UI Elements
+export const arabicTranslations = {
   'Create New Account': 'إنشاء حساب جديد',
   'Join the leading tailoring platform in the UAE': 'انضم إلى منصة الخياطة الرائدة في الإمارات',
   'Business Information': 'معلومات العمل',
@@ -26,10 +28,12 @@ const arabicTranslations = {
   'Create Account': 'إنشاء حساب',
   'Already have an account?': 'هل لديك حساب بالفعل؟',
   'Sign In': 'تسجيل الدخول',
+  'Remove': 'إزالة',
+  'Emirates ID Expiry Date': 'تاريخ انتهاء الهوية الإماراتية',
 
-  // Form Fields
   'Business Name': 'اسم العمل',
   'Owner Name': 'اسم المالك',
+  'Email': 'البريد الإلكتروني',
   'WhatsApp': 'واتساب',
   'Locations': 'المواقع',
   'Gender Specialization': 'التخصص حسب الجنس',
@@ -96,14 +100,38 @@ const arabicTranslations = {
   'Select languages': 'اختر اللغات',
   'Describe your tailoring services and expertise': 'صِف خدمات الخياطة وخبراتك',
   'Instagram profile URL': 'رابط الملف الشخصي على إنستغرام',
-  'Facebook page URL': 'رابط الصفحة على الفيسبوك',
+  'Facebook page URL': 'رابط الصفحة على الفيسبック',
   'Website URL': 'رابط الموقع الإلكتروني',
+  'Select expiry date': 'اختر تاريخ الانتهاء',
 };
 
 const Register = () => {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('en');
   const [isRTL, setIsRTL] = useState(false);
+  const { handleLoading } = useLoading();
+  const [specialty, setSpecialty] = useState([]);
+
+  const fetchMasterData = async () => {
+    handleLoading(true);
+    try {
+      const res = await MasterApi.getSpecialties();
+      setSpecialty(res.data?.data);
+    } catch (error) {
+      console.error("Error fetching master data:", error);
+    } finally {
+      handleLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMasterData();
+  }, []);
+
+  const specialtyOptions = specialty.map((item) => ({
+    value: item._id,
+    label: item.name
+  }));
 
   // Update RTL state when language changes
   useEffect(() => {
@@ -132,21 +160,6 @@ const Register = () => {
     { value: 'both', label: t('Both Male & Female') }
   ];
 
-  const specialtyOptions = [
-    { value: 'kandura', label: t('Kandura') },
-    { value: 'bisht', label: t('Bisht') },
-    { value: 'traditional-wear', label: t('Traditional Wear') },
-    { value: 'formal-wear', label: t('Formal Wear') },
-    { value: 'casual-alterations', label: t('Casual Alterations') },
-    { value: 'wedding-dress', label: t('Wedding Dress') },
-    { value: 'suits', label: t('Suits') },
-    { value: 'abayas', label: t('Abayas') },
-    { value: 'thobes', label: t('Thobes') },
-    { value: 'evening-wear', label: t('Evening Wear') },
-    { value: 'casual-wear', label: t('Casual Wear') },
-    { value: 'uniforms', label: t('Uniforms') }
-  ];
-
   const experienceOptions = [
     { value: '1-2', label: t('1-2 years') },
     { value: '3-5', label: t('3-5 years') },
@@ -155,36 +168,25 @@ const Register = () => {
     { value: '15+', label: t('15+ years') }
   ];
 
-  const languageOptions = [
-    { value: 'english', label: t('English') },
-    { value: 'arabic', label: t('Arabic') },
-    { value: 'hindi', label: t('Hindi') },
-    { value: 'urdu', label: t('Urdu') },
-    { value: 'tamil', label: t('Tamil') },
-    { value: 'malayalam', label: t('Malayalam') },
-    { value: 'bengali', label: t('Bengali') },
-    { value: 'punjabi', label: t('Punjabi') }
-  ];
-
   // Formik setup
   const formik = useFormik({
     initialValues: {
-      // Tailor specific fields
       businessName: '',
       ownerName: '',
+      email: '',
       whatsapp: '',
       locations: [],
       gender: '',
       specialties: [],
       experience: '',
       description: '',
-      workingHours: '',
       homeMeasurement: false,
       rushOrders: false,
-      tradeLicense: null,
-      emiratesId: null,
-      certificates: null,
-      portfolioImages: null,
+      tradeLicense: [],
+      emiratesId: [],
+      emiratesIdExpiry: '',
+      certificates: [],
+      portfolioImages: [],
       socialMedia: {
         instagram: '',
         facebook: '',
@@ -193,113 +195,76 @@ const Register = () => {
     },
     validate: (values) => {
       const errors = {};
-
-      // Common validations
-      if (!values.name) errors.name = t('Name is required');
+      if (!values.businessName) errors.businessName = t('Business name is required');
+      if (!values.ownerName) errors.ownerName = t('Owner name is required');
       if (!values.email) errors.email = t('Email is required');
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-        errors.email = t('Invalid email format');
-      }
-      if (!values.password) errors.password = t('Password is required');
-      if (values.password !== values.confirmPassword) errors.confirmPassword = t('Passwords do not match');
-      if (!values.phone) errors.phone = t('Phone is required');
-
-      // Tailor specific validations
-      if (values.userType === 'tailor') {
-        if (!values.businessName) errors.businessName = t('Business name is required');
-        if (!values.ownerName) errors.ownerName = t('Owner name is required');
-        if (!values.locations.length) errors.locations = t('At least one location is required');
-        if (!values.gender) errors.gender = t('Gender preference is required');
-        if (!values.specialties.length) errors.specialties = t('At least one specialty is required');
-        if (!values.experience) errors.experience = t('Experience is required');
-      }
+      if (!values.locations.length) errors.locations = t('At least one location is required');
+      if (!values.gender) errors.gender = t('Gender preference is required');
+      if (!values.specialties.length) errors.specialties = t('At least one specialty is required');
+      if (!values.experience) errors.experience = t('Experience is required');
+      if (!values.emiratesIdExpiry) errors.emiratesIdExpiry = t('Emirates ID expiry date is required');
+      if (!values.tradeLicense.length) errors.tradeLicense = t('Trade License is required');
+      if (!values.emiratesId.length) errors.emiratesId = t('Emirates ID is required');
 
       return errors;
     },
     onSubmit: async (values) => {
       setLoading(true);
+      handleLoading(true);
 
       try {
-        // Create payload based on user type
-        const payload = {
-          name: values.name,
-          email: values.email,
-          password: values.password,
-          phone: values.phone,
-          address: values.address,
-          type: values.userType
-        };
-
-        // Add tailor-specific fields if user is a tailor
-        if (values.userType === 'tailor') {
-          payload.businessInfo = {
-            businessName: values.businessName,
-            ownerName: values.ownerName,
-            whatsapp: values.whatsapp,
-            locations: values.locations,
-            address: values.address
-          };
-
-          payload.professionalInfo = {
-            gender: values.gender,
-            specialties: values.specialties,
-            experience: values.experience,
-            description: values.description,
-            workingHours: values.workingHours
-          };
-
-          payload.services = {
-            homeMeasurement: values.homeMeasurement,
-            rushOrders: values.rushOrders
-          };
-
-          payload.documents = {
-            tradeLicense: values.tradeLicense,
-            emiratesId: values.emiratesId,
-            certificates: values.certificates,
-            portfolioImages: values.portfolioImages
-          };
-
-          payload.additionalInfo = {
-            socialMedia: values.socialMedia
-          };
-        }
-
-        const result = await register(payload);
-
-        if (result.success) {
-          toast({
-            title: t('Account Created Successfully'),
-            description: `${t('Welcome')} ${result.user.name}`,
-          });
-
-          // Redirect based on user type
-          navigate(values.userType === 'tailor' ? '/tailor' : '/');
-        }
-      } catch (error) {
-        toast({
-          title: t('Error'),
-          description: t('An error occurred while creating your account'),
-          variant: 'destructive'
+        const formData = new FormData();
+        formData.append("user_role", 2);
+        Object.keys(values).forEach((key) => {
+          if (
+            key !== "tradeLicense" &&
+            key !== "emiratesId" &&
+            key !== "certificates" &&
+            key !== "portfolioImages" &&
+            key !== "workingHoursStart" &&
+            key !== "workingHoursEnd"
+          ) {
+            if (typeof values[key] === "object" && !Array.isArray(values[key])) {
+              formData.append(key, JSON.stringify(values[key]));
+            } else if (Array.isArray(values[key])) {
+              formData.append(key, JSON.stringify(values[key]));
+            } else {
+              formData.append(key, values[key]);
+            }
+          }
         });
+
+        values.tradeLicense.forEach((file) => {
+          formData.append("tradeLicense", file);
+        });
+
+        values.emiratesId.forEach((file) => {
+          formData.append("emiratesId", file);
+        });
+
+        values.certificates.forEach((file) => {
+          formData.append("certificates", file);
+        });
+
+        values.portfolioImages.forEach((file) => {
+          formData.append("portfolioImages", file);
+        });
+
+
+        const res = await AuthApi.register(formData);
+        console.log(res?.data)
+
+        toast.success(t('Account created successfully! Please wait for verification.'));
+      } catch (error) {
+        toast.error(t('An error occurred while creating your account'));
       } finally {
         setLoading(false);
+        handleLoading(false)
       }
     }
   });
 
-  const { register } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
-  const handleFileChange = (fieldName) => (e) => {
-    const file = e.target.files[0];
-    formik.setFieldValue(fieldName, file);
-  };
-
-  const handlePhoneChange = (value) => {
-    formik.setFieldValue('phone', value || '');
-  };
 
   const handleWhatsAppChange = (value) => {
     formik.setFieldValue('whatsapp', value || '');
@@ -412,6 +377,18 @@ const Register = () => {
                           placeholder={t('Enter owner name')}
                           dir={isRTL ? 'rtl' : 'ltr'}
                         />
+                        <InputField
+                          label={t('Email')}
+                          name="email"
+                          type="email"
+                          value={formik.values.email}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.email && formik.errors.email}
+                          isRequired
+                          placeholder={t('Enter email')}
+                          dir={isRTL ? 'rtl' : 'ltr'}
+                        />
 
                         <div className="space-y-2">
                           <label className="text-sm font-medium">{t('WhatsApp')}</label>
@@ -496,17 +473,20 @@ const Register = () => {
                         />
 
                         <InputField
-                          label={t('Working Hours')}
-                          name="workingHours"
-                          type="text"
-                          value={formik.values.workingHours}
+                          label={t('Emirates ID Expiry Date')}
+                          name="emiratesIdExpiry"
+                          type="date"
+                          value={formik.values.emiratesIdExpiry}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          placeholder={t('e.g., 9 AM - 9 PM')}
+                          error={formik.touched.emiratesIdExpiry && formik.errors.emiratesIdExpiry}
+                          isRequired
+                          placeholder={t('Select expiry date')}
                           dir={isRTL ? 'rtl' : 'ltr'}
+                          isRTL={isRTL}
                         />
 
-                        
+
                       </div>
 
                       <InputField
@@ -559,45 +539,56 @@ const Register = () => {
                     <div className="mt-6">
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('Documents Upload')}</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <InputField
+                        <FileInputField
                           label={t('Trade License')}
                           name="tradeLicense"
-                          type="file"
-                          onChange={handleFileChange('tradeLicense')}
+                          value={formik.values.tradeLicense}
+                          onChange={(files) => formik.setFieldValue('tradeLicense', files)}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.tradeLicense && formik.errors.tradeLicense}
                           accept=".pdf,.jpg,.jpeg,.png"
-                          dir={isRTL ? 'rtl' : 'ltr'}
+                          multiple={true}
+                          isRTL={isRTL}
+                          isRequired
                         />
 
-                        <InputField
+                        <FileInputField
                           label={t('Emirates ID')}
                           name="emiratesId"
-                          type="file"
-                          onChange={handleFileChange('emiratesId')}
+                          value={formik.values.emiratesId}
+                          onChange={(files) => formik.setFieldValue('emiratesId', files)}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.emiratesId && formik.errors.emiratesId}
                           accept=".pdf,.jpg,.jpeg,.png"
-                          dir={isRTL ? 'rtl' : 'ltr'}
+                          multiple={true}
+                          isRTL={isRTL}
+                          isRequired
                         />
 
-                        <InputField
+                        <FileInputField
                           label={t('Certificates')}
                           name="certificates"
-                          type="file"
-                          onChange={handleFileChange('certificates')}
+                          value={formik.values.certificates}
+                          onChange={(files) => formik.setFieldValue('certificates', files)}
+                          onBlur={formik.handleBlur}
                           accept=".pdf,.jpg,.jpeg,.png"
-                          multiple
-                          dir={isRTL ? 'rtl' : 'ltr'}
+                          multiple={true}
+                          isRTL={isRTL}
                         />
 
-                        <InputField
+                        <FileInputField
                           label={t('Portfolio Images')}
                           name="portfolioImages"
-                          type="file"
-                          onChange={handleFileChange('portfolioImages')}
+                          value={formik.values.portfolioImages}
+                          onChange={(files) => formik.setFieldValue('portfolioImages', files)}
+                          onBlur={formik.handleBlur}
                           accept=".jpg,.jpeg,.png"
-                          multiple
-                          dir={isRTL ? 'rtl' : 'ltr'}
+                          multiple={true}
+                          isRTL={isRTL}
                         />
                       </div>
                     </div>
+
 
                     {/* Social Media */}
                     <div className="mt-6">

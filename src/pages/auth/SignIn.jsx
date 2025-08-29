@@ -15,7 +15,6 @@ import { toast } from 'react-toastify';
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
