@@ -1,11 +1,10 @@
-import { CheckCircle, Eye, MoreVertical, XCircle } from "lucide-react";
+import { CheckCircle, Eye, MoreVertical, XCircle, PlayCircle } from "lucide-react";
 import { useState } from "react";
 
-
-const ActionDropdown = ({ tailor,onApprove,onReject,onView }) => {
+const ActionDropdown = ({ tailor, onApprove, onReject, onDeactivate, onActivate, onView }) => {
     const [dropdownOpen, setDropdownOpen] = useState(null);
 
-    const ActionDropdown = () => {
+    const DropdownMenu = () => {
         const isOpen = dropdownOpen === tailor.id;
 
         return (
@@ -55,15 +54,39 @@ const ActionDropdown = ({ tailor,onApprove,onReject,onView }) => {
                                 </button>
                             </>
                         )}
+
+                        {tailor.status === 'approved' && onDeactivate && (
+                            <button
+                                onClick={() => {
+                                    onDeactivate(tailor);
+                                    setDropdownOpen(null);
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-50"
+                            >
+                                <XCircle className="w-4 h-4" />
+                                <span>Deactivate</span>
+                            </button>
+                        )}
+
+                        {tailor.status === 'deactivated' && onActivate && (
+                            <button
+                                onClick={() => {
+                                    onActivate(tailor);
+                                    setDropdownOpen(null);
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-green-600 hover:bg-gray-50"
+                            >
+                                <PlayCircle className="w-4 h-4" />
+                                <span>Activate</span>
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
         );
     };
 
-    return (
-        <ActionDropdown />
-    )
-}
+    return <DropdownMenu />;
+};
 
-export default ActionDropdown
+export default ActionDropdown;

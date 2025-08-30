@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -196,7 +196,7 @@ const Navigation = ({ type = 'admin' }) => {
                     }
                   >
                     <item.icon className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`} />
-                    <span className="font-medium">{item.title}</span>
+                    <span className="font-semibold">{item.title}</span>
                     {item.badge && (
                       <span className={`ml-auto px-2 py-1 text-xs bg-gold text-gold-foreground rounded-full font-semibold ${direction === 'rtl' ? 'ml-0 mr-auto' : ''
                         }`}>
@@ -276,7 +276,7 @@ const Navigation = ({ type = 'admin' }) => {
                   <item.icon className={`w-5 h-5 ${isCollapsed ? '' : (direction === 'rtl' ? 'ml-3' : 'mr-3')}`} />
                   {!isCollapsed && (
                     <>
-                      <span className="font-medium">{item.title}</span>
+                      <span className="font-semibold">{item.title}</span>
                       {item.badge && (
                         <span className={`ml-auto px-2 py-1 text-xs bg-gold text-gold-foreground rounded-full font-semibold ${direction === 'rtl' ? 'ml-0 mr-auto' : ''
                           }`}>

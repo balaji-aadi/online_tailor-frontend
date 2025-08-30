@@ -79,7 +79,7 @@ const TableAlpha = ({
         getPaginationRowModel: getPaginationRowModel(),
         initialState: {
             pagination: {
-                pageSize: 10,
+                pageSize: 5,
             },
         },
     });
