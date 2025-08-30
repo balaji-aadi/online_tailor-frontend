@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,7 +16,13 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  Shirt,
+  Target,
+  Ruler
 } from 'lucide-react';
 import { useLanguage } from './Layout';
 
@@ -25,29 +31,23 @@ const Navigation = ({ type = 'admin' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [expandedItems, setExpandedItems] = useState({});
 
-  // Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-
-      // Auto-close sidebar on mobile when resizing
       if (mobile) {
         setIsOpen(false);
       } else {
         setIsOpen(true);
       }
-
-      // Auto-collapse on medium screens
       if (window.innerWidth >= 768 && window.innerWidth < 1024) {
         setIsCollapsed(true);
       } else {
         setIsCollapsed(false);
       }
     };
-
-    // Initial setup
     handleResize();
 
     window.addEventListener('resize', handleResize);
@@ -62,6 +62,13 @@ const Navigation = ({ type = 'admin' }) => {
     }
   };
 
+  const toggleExpanded = (itemKey) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [itemKey]: !prev[itemKey]
+    }));
+  };
+
   const adminNavItems = [
     {
       title: language === 'en' ? 'Dashboard' : 'لوحة التحكم',
@@ -72,8 +79,7 @@ const Navigation = ({ type = 'admin' }) => {
     {
       title: language === 'en' ? 'User Management' : 'إدارة المستخدمين',
       href: '/admin/users',
-      icon: Users,
-      // badge: '12'
+      icon: Users
     },
     {
       title: language === 'en' ? 'Analytics' : 'التحليلات',
@@ -84,7 +90,6 @@ const Navigation = ({ type = 'admin' }) => {
       title: language === 'en' ? 'Tailor Verification' : 'تحقق من الخياطين',
       href: '/admin/verification',
       icon: UserCheck,
-      // badge: '5'
     },
     {
       title: language === 'en' ? 'Content Management' : 'إدارة المحتوى',
@@ -95,12 +100,34 @@ const Navigation = ({ type = 'admin' }) => {
       title: language === 'en' ? 'Disputes' : 'النزاعات',
       href: '/admin/disputes',
       icon: MessageSquare,
-      // badge: '3'
     },
     {
       title: language === 'en' ? 'Reports' : 'التقارير',
       href: '/admin/reports',
       icon: TrendingUp
+    },
+    {
+      key: 'masters',
+      title: language === 'en' ? 'Masters' : 'البيانات الرئيسية',
+      href: '/admin/master',
+      icon: Layers,
+      children: [
+        {
+          title: language === 'en' ? 'Fabrics' : 'الأقمشة',
+          href: '/admin/master/fabrics',
+          icon: Shirt
+        },
+        {
+          title: language === 'en' ? 'Specialties' : 'التخصصات',
+          href: '/admin/master/specialties',
+          icon: Target
+        },
+        {
+          title: language === 'en' ? 'Measurements' : 'القياسات',
+          href: '/admin/master/measurements',
+          icon: Ruler
+        }
+      ]
     },
     {
       title: language === 'en' ? 'Settings' : 'الإعدادات',
@@ -125,7 +152,6 @@ const Navigation = ({ type = 'admin' }) => {
       title: language === 'en' ? 'Orders' : 'الطلبات',
       href: '/tailor/orders',
       icon: ShoppingBag,
-      // badge: '8'
     },
     {
       title: language === 'en' ? 'Services' : 'الخدمات',
@@ -151,13 +177,69 @@ const Navigation = ({ type = 'admin' }) => {
       title: language === 'en' ? 'Messages' : 'الرسائل',
       href: '/tailor/messages',
       icon: MessageSquare,
-      // badge: '2'
     }
   ];
 
   const navItems = type === 'admin' ? adminNavItems : tailorNavItems;
 
-  // Mobile overlay
+  const renderNavItem = (item, level = 0) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems[item.key || item.href];
+
+    return (
+      <li key={item.href || item.key}>
+        {hasChildren ? (
+          <>
+            <button
+              onClick={() => toggleExpanded(item.key || item.href)}
+              className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-300 gap-4 group text-muted-foreground hover:text-foreground hover:bg-secondary/50 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
+              style={{ paddingLeft: level > 0 ? `${level * 20 + 16}px` : '16px' }}
+            >
+              {item.icon && <item.icon className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`} />}
+              {!isCollapsed && (
+                <>
+                  <span className="font-semibold flex-1 text-start text-xs">{item.title}</span>
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </>
+              )}
+            </button>
+
+            {isExpanded && !isCollapsed && (
+              <ul className="mt-1 space-y-1">
+                {item.children.map(child => renderNavItem(child, level + 1))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <NavLink
+            to={item.href}
+            end={item.exact}
+            onClick={() => isMobile && setIsOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center px-4 py-3 rounded-xl transition-all duration-300 gap-4 group ${isActive
+                ? 'bg-primary text-primary-foreground shadow-md'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+              } ${direction === 'rtl' ? 'flex-row-reverse' : ''}`
+            }
+            style={{ paddingLeft: level > 0 ? `${level * 20 + 16}px` : '16px' }}
+          >
+            {item.icon && <item.icon className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`} />}
+            <span className="font-semibold text-xs">{item.title}</span>
+            {item.badge && (
+              <span className={`ml-auto px-2 py-1 text-xs bg-gold text-gold-foreground rounded-full font-semibold ${direction === 'rtl' ? 'ml-0 mr-auto' : ''}`}>
+                {item.badge}
+              </span>
+            )}
+          </NavLink>
+        )}
+      </li>
+    );
+  };
+
   if (isMobile && isOpen) {
     return (
       <>
@@ -182,30 +264,7 @@ const Navigation = ({ type = 'admin' }) => {
           </div>
           <div className="p-4 overflow-y-auto h-full pb-20">
             <ul className="space-y-2">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <NavLink
-                    to={item.href}
-                    end={item.exact}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center px-4 py-3 rounded-xl transition-all duration-300 gap-4 group ${isActive
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                      } ${direction === 'rtl' ? 'flex-row-reverse' : ''}`
-                    }
-                  >
-                    <item.icon className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`} />
-                    <span className="font-semibold">{item.title}</span>
-                    {item.badge && (
-                      <span className={`ml-auto px-2 py-1 text-xs bg-gold text-gold-foreground rounded-full font-semibold ${direction === 'rtl' ? 'ml-0 mr-auto' : ''
-                        }`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
+              {navItems.map(item => renderNavItem(item))}
             </ul>
           </div>
         </nav>
@@ -230,7 +289,7 @@ const Navigation = ({ type = 'admin' }) => {
               (language === 'en' ? 'Tailor' : 'خياط')
             }
           </h2>
-          <div className="w-6"></div> {/* Spacer for balance */}
+          <div className="w-6"></div>
         </div>
       )}
 
@@ -247,47 +306,20 @@ const Navigation = ({ type = 'admin' }) => {
           )}
           <button
             onClick={toggleSidebar}
-            className="p-1 rounded-md hover:bg-secondary"
+            className="p-1 rounded-md hover:bg-secondary hover:text-white"
             aria-label={isCollapsed ? (language === 'en' ? 'Expand sidebar' : 'توسيع الشريط الجانبي') : (language === 'en' ? 'Collapse sidebar' : 'طي الشريط الجانبي')}
           >
             {direction === 'rtl' ? (
-              isCollapsed ? <ChevronLeft className="w-5 h-5 hover:text-white" /> : <ChevronRight className="w-5 h-5 hover:text-white" />
+              isCollapsed ? <ChevronLeft className="w-5 h-5 " /> : <ChevronRight className="w-5 h-5 " />
             ) : (
-              isCollapsed ? <ChevronRight className="w-5 h-5 ml-2 hover:text-white" /> : <ChevronLeft className="w-5 h-5 hover:text-white" />
+              isCollapsed ? <ChevronRight className="w-5 h-5 ml-2 " /> : <ChevronLeft className="w-5 h-5 " />
             )}
           </button>
         </div>
 
         <div className="p-4 overflow-y-auto h-full pb-20">
           <ul className="space-y-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <NavLink
-                  to={item.href}
-                  end={item.exact}
-                  className={({ isActive }) =>
-                    `flex items-center px-4 py-3 rounded-xl transition-all gap-4 duration-300 text-xs group ${isActive
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                    } ${direction === 'rtl' ? 'flex-row-reverse' : ''}`
-                  }
-                  title={isCollapsed ? item.title : ''}
-                >
-                  <item.icon className={`w-5 h-5 ${isCollapsed ? '' : (direction === 'rtl' ? 'ml-3' : 'mr-3')}`} />
-                  {!isCollapsed && (
-                    <>
-                      <span className="font-semibold">{item.title}</span>
-                      {item.badge && (
-                        <span className={`ml-auto px-2 py-1 text-xs bg-gold text-gold-foreground rounded-full font-semibold ${direction === 'rtl' ? 'ml-0 mr-auto' : ''
-                          }`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              </li>
-            ))}
+            {navItems.map(item => renderNavItem(item))}
           </ul>
         </div>
       </nav>

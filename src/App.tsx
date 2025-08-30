@@ -21,6 +21,9 @@ import ContentManagement from "./pages/admin/ContentManagement.jsx";
 import Disputes from "./pages/admin/Disputes.jsx";
 import Reports from "./pages/admin/Reports.jsx";
 import AdminSettings from "./pages/admin/Settings.jsx";
+import Fabric from "./pages/admin/Masters/Fabric.jsx";
+import Specialities from "./pages/admin/Masters/Specialities.jsx";
+import Measurements from "./pages/admin/Masters/Measurements.jsx";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Tailor Pages
@@ -92,6 +95,9 @@ const AppRoutes = () => {
           <Route path="disputes" element={<Disputes />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="master/fabrics" element={<Fabric />} />
+          <Route path="master/specialties" element={<Specialities />} />
+          <Route path="master/measurements" element={<Measurements />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 

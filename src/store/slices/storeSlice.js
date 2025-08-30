@@ -53,7 +53,7 @@ const storeSlice = createSlice({
         state.currentUser = action.payload.data.user || null;
         localStorage.setItem("token", action.payload.data.accessToken);
         localStorage.setItem("refreshToken", action.payload.data.refreshToken);
-        toast.success(`Welcome Back, ${action.payload.data?.user?.first_name}`);
+        toast.success(`Welcome Back, ${action.payload.data?.user?.first_name ? action.payload.data?.user?.first_name : action.payload.data?.user?.ownerName}`);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
