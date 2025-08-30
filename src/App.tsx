@@ -24,6 +24,7 @@ import AdminSettings from "./pages/admin/Settings.jsx";
 import Fabric from "./pages/admin/Masters/Fabric.jsx";
 import Specialities from "./pages/admin/Masters/Specialities.jsx";
 import Measurements from "./pages/admin/Masters/Measurements.jsx";
+import Category from "./pages/admin/Masters/Category.jsx";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Tailor Pages
@@ -98,6 +99,7 @@ const AppRoutes = () => {
           <Route path="master/fabrics" element={<Fabric />} />
           <Route path="master/specialties" element={<Specialities />} />
           <Route path="master/measurements" element={<Measurements />} />
+          <Route path="master/category" element={<Category />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 

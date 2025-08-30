@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Menu,
   X,
+  Globe,
   ChevronLeft,
   ChevronRight,
   Layers,
@@ -126,7 +127,13 @@ const Navigation = ({ type = 'admin' }) => {
           title: language === 'en' ? 'Measurements' : 'القياسات',
           href: '/admin/master/measurements',
           icon: Ruler
+        },
+        {
+          title: language === 'en' ? 'Category' : 'الفئة',
+          href: '/admin/master/category',
+          icon:  Globe,
         }
+
       ]
     },
     {

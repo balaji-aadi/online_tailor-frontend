@@ -17,7 +17,13 @@ const MasterApi = {
     createMeasurement: (payload) => Api.post('master/create-measurement-templates', payload),
     updateMeasurement: (id, payload) => Api.put(`master/update-measurement-templates/${id}`, payload),
     getMeasurements: () => Api.post('master/get-all-measurement-templates'),
-    deleteMeasurement: (id) => Api.delete(`master/delete-measurement-templates/${id}`)
+    deleteMeasurement: (id) => Api.delete(`master/delete-measurement-templates/${id}`),
+
+    // category
+    createCategory: (payload) => Api.post('master/create-category', payload),
+    updateCategory: (id, payload) => Api.put(`master/update-category/${id}`, payload),
+    getCategories: () => Api.post('master/get-all-categories'),
+    deleteCategory: (id) => Api.delete(`master/delete-category/${id}`)
 };
 
 export default MasterApi;
