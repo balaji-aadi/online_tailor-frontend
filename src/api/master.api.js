@@ -23,7 +23,22 @@ const MasterApi = {
     createCategory: (payload) => Api.post('master/create-category', payload),
     updateCategory: (id, payload) => Api.put(`master/update-category/${id}`, payload),
     getCategories: () => Api.post('master/get-all-categories'),
-    deleteCategory: (id) => Api.delete(`master/delete-category/${id}`)
+    deleteCategory: (id) => Api.delete(`master/delete-category/${id}`),
+
+    // tax
+    createTax: (payload) => Api.post('master/create-tax', payload),
+    updateTax: (id, payload) => Api.put(`master/update-tax/${id}`, payload),
+    getTaxes: () => Api.post('master/get-all-taxes'),
+    deleteTax: (id) => Api.delete(`master/delete-tax/${id}`),
+    getActiveTax: () => Api.post('master/get-active-tax'),
+
+
+    // terms policy
+    createTermsPolicy: (payload) => Api.post('master/create-terms-policy', payload),
+    updateTermsPolicy: (id, payload) => Api.put(`master/update-terms-policy/${id}`, payload),
+    getTermsPolicies: (payload) => Api.post('master/get-terms-policy', payload),
+    getAllTermsPolicies: () => Api.post('master/get-all-terms-policy'),
+
 };
 
 export default MasterApi;

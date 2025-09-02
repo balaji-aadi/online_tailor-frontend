@@ -6,10 +6,8 @@ import TableAlpha from '../../../components/ui/TableAlpha';
 import CommonModal from '../../../components/ui/commonModal';
 import { FileInputField } from '../../../components/ui/ImageInputField';
 import InputField from '../../../components/ui/InputField';
-import { useLoading } from '../../../loader/LoaderContext';
 import MasterApi from '../../../api/master.api';
 import { toast } from 'react-toastify';
-import Description from '../../../components/ui/Description';
 import { useLanguage } from '../../../components/Layout';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -21,6 +19,7 @@ const translations = {
         addMeasurement: 'Add Measurement Template',
         templateName: 'Template Name',
         garmentType: 'Garment Type',
+        gender: 'Gender',
         description: 'Description',
         measurementGuide: 'Measurement Guide',
         measurementPoints: 'Measurement Points',
@@ -41,6 +40,7 @@ const translations = {
         nameRequired: 'Measurement template name is required',
         nameMin: 'Name must be at least 2 characters',
         garmentTypeRequired: 'Garment type is required',
+        genderRequired: 'Gender is required',
         descriptionRequired: 'Description is required',
         imageRequired: 'Image is required',
         imageMin: 'At least one image is required',
@@ -51,6 +51,7 @@ const translations = {
         centimeters: 'Centimeters',
         measurementTemplates: 'measurement templates',
         selectGarmentType: 'Select garment type',
+        selectGender: 'Select gender',
         describeMeasurementTemplate: 'Describe this measurement template...',
         measurementPointsGuideTitle: 'Measurement Points Guide'
     },
@@ -60,6 +61,7 @@ const translations = {
         addMeasurement: 'إضافة قالب القياس',
         templateName: 'اسم القالب',
         garmentType: 'نوع الملابس',
+        gender: 'الجنس',
         description: 'الوصف',
         measurementGuide: 'دليل القياس',
         measurementPoints: 'نقاط القياس',
@@ -80,6 +82,7 @@ const translations = {
         nameRequired: 'اسم قالب القياس مطلوب',
         nameMin: 'يجب أن يكون الاسم على الأقل حرفين',
         garmentTypeRequired: 'نوع الملابس مطلوب',
+        genderRequired: 'الجنس مطلوب',
         descriptionRequired: 'الوصف مطلوب',
         imageRequired: 'الصورة مطلوبة',
         imageMin: 'مطلوب صورة واحدة على الأقل',
@@ -90,6 +93,7 @@ const translations = {
         centimeters: 'سنتيمترات',
         measurementTemplates: 'قوالب القياس',
         selectGarmentType: 'اختر نوع الملابس',
+        selectGender: 'اختر الجنس',
         describeMeasurementTemplate: 'صِف قالب القياس هذا...',
         measurementPointsGuideTitle: 'دليل نقاط القياس'
     }
@@ -119,33 +123,31 @@ const Measurements = () => {
     const [activeTab, setActiveTab] = useState('details');
     const [measurements, setMeasurements] = useState([]);
     const [garmentTypes, setGarmentTypes] = useState([]);
-    const { handleLoading } = useLoading();
     const { language } = useLanguage();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const t = translations[language || 'en'];
 
+    const genderOptions = [
+        { value: 'male', label: t.male || 'Male' },
+        { value: 'female', label: t.female || 'Female' },
+    ];
+
     const fetchMasterData = async () => {
-        handleLoading(true);
         try {
             const res = await MasterApi.getSpecialties();
             setGarmentTypes(res.data?.data);
         } catch (error) {
             console.error("Error fetching master data:", error);
-        } finally {
-            handleLoading(false);
         }
     };
 
     const fetchMeasurements = async () => {
-        handleLoading(true);
         try {
             const res = await MasterApi.getMeasurements();
             setMeasurements(res.data?.data || []);
         } catch (error) {
             console.error("Error fetching measurements:", error);
-        } finally {
-            handleLoading(false);
         }
     };
 
@@ -154,12 +156,14 @@ const Measurements = () => {
         fetchMeasurements();
     }, []);
 
-
     const validationSchema = Yup.object({
         name: Yup.string()
             .required(t.nameRequired)
             .min(2, t.nameMin),
         garmentType: Yup.string().required(t.garmentTypeRequired),
+        gender: Yup.string()
+            .required(t.genderRequired)
+            .oneOf(['male', 'female'], 'Invalid gender'),
         description: Yup.string().required(t.descriptionRequired),
         image: Yup.array().min(1, t.imageMin).required(t.imageRequired),
         measurementPoints: Yup.array()
@@ -173,22 +177,22 @@ const Measurements = () => {
             .min(1, t.pointsRequired),
     });
 
-
     const formik = useFormik({
         initialValues: {
             name: '',
             garmentType: '',
+            gender: '',
             description: '',
             image: [],
             measurementPoints: [{ name: '', unit: 'inch', required: true }],
         },
         validationSchema,
         onSubmit: async (values) => {
-            handleLoading(true);
             try {
                 const formData = new FormData();
                 formData.append('name', values.name);
                 formData.append('garmentType', values.garmentType);
+                formData.append('gender', values.gender);
                 formData.append('description', values.description);
 
                 if (values.image) {
@@ -212,8 +216,6 @@ const Measurements = () => {
             } catch (err) {
                 console.error(err);
                 toast.error(err.response?.data?.message || 'Something went wrong');
-            } finally {
-                handleLoading(false);
             }
         },
     });
@@ -256,6 +258,15 @@ const Measurements = () => {
                     </div>
                 </div>
             ),
+        },
+        {
+            header: t.gender,
+            accessorKey: 'gender',
+            cell: ({ row }) => (
+                <span className="font-medium text-gray-900 capitalize">
+                    {row.original.gender}
+                </span>
+            )
         },
         {
             header: t.measurementPoints,
@@ -304,7 +315,6 @@ const Measurements = () => {
         },
     ];
 
-
     const handleImageChange = (files) => {
         formik.setFieldValue('image', files);
     };
@@ -339,6 +349,7 @@ const Measurements = () => {
         formik.setValues({
             name: measurement.name,
             garmentType: measurement.garmentType?._id || '',
+            gender: measurement.gender || '',
             description: measurement.description,
             image: measurement.image || [],
             measurementPoints: measurement.measurementPoints.map(point => ({
@@ -352,7 +363,6 @@ const Measurements = () => {
 
     const handleDelete = async (id) => {
         if (window.confirm(t.deleteConfirm)) {
-            handleLoading(true);
             try {
                 await MasterApi.deleteMeasurement(id);
                 toast.success(t.deletedSuccess);
@@ -360,8 +370,6 @@ const Measurements = () => {
             } catch (err) {
                 console.error(err);
                 toast.error(err.response?.data?.message || 'Failed to delete measurement');
-            } finally {
-                handleLoading(false);
             }
         }
     };
@@ -438,7 +446,6 @@ const Measurements = () => {
                     itemsName={t.measurementTemplates}
                 />
 
-
                 <CommonModal
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
@@ -503,6 +510,19 @@ const Measurements = () => {
                                     options={garmentTypeOptions}
                                     placeholder={t.selectGarmentType}
                                     error={formik.touched.garmentType && formik.errors.garmentType}
+                                    isRequired={true}
+                                />
+
+                                <InputField
+                                    label={t.gender}
+                                    name="gender"
+                                    type="select"
+                                    value={formik.values.gender}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    options={genderOptions}
+                                    placeholder={t.selectGender}
+                                    error={formik.touched.gender && formik.errors.gender}
                                     isRequired={true}
                                 />
 
@@ -737,6 +757,11 @@ const Measurements = () => {
                                             <p className="text-sm text-gray-900">{selectedMeasurement.garmentType?.name || 'N/A'}</p>
                                         </div>
                                         <div>
+                                            <p className="text-sm font-medium text-gray-500">{t.gender}</p>
+                                            <p className="text-sm text-gray-900 capitalize">{selectedMeasurement.gender || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500">{t.description}</p>
                                             <div
                                                 className="text-sm text-gray-900 mt-1 prose prose-sm max-w-none"
                                                 dangerouslySetInnerHTML={{ __html: selectedMeasurement.description }}

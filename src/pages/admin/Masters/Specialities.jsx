@@ -6,7 +6,6 @@ import TableAlpha from '../../../components/ui/TableAlpha';
 import CommonModal from '../../../components/ui/commonModal';
 import InputField from '../../../components/ui/InputField';
 import { FileInputField } from '../../../components/ui/ImageInputField';
-import { useLoading } from '../../../loader/LoaderContext';
 import MasterApi from '../../../api/master.api';
 import { toast } from 'react-toastify';
 import { useLanguage } from '../../../components/Layout';
@@ -17,6 +16,8 @@ const translations = {
         addSpeciality: 'Add Speciality',
         specialityName: 'Speciality Name',
         specialityImage: 'Speciality Image',
+        gender: 'Gender',
+        selectGender: 'Select gender',
         enterSpecialityName: 'Enter speciality name',
         editSpeciality: 'Edit Speciality',
         addNewSpeciality: 'Add New Speciality',
@@ -30,6 +31,7 @@ const translations = {
         nameMax: 'Speciality name must be less than 50 characters',
         imageRequired: 'Image is required',
         imageMin: 'At least one image is required',
+        genderRequired: 'Gender is required',
         image: 'Image',
         name: 'Name',
         actions: 'Actions',
@@ -40,6 +42,8 @@ const translations = {
         addSpeciality: 'إضافة تخصص',
         specialityName: 'اسم التخصص',
         specialityImage: 'صورة التخصص',
+        gender: 'الجنس',
+        selectGender: 'اختر الجنس',
         enterSpecialityName: 'أدخل اسم التخصص',
         editSpeciality: 'تعديل التخصص',
         addNewSpeciality: 'إضافة تخصص جديد',
@@ -53,6 +57,7 @@ const translations = {
         nameMax: 'يجب أن يكون اسم التخصص أقل من 50 حرفًا',
         imageRequired: 'الصورة مطلوبة',
         imageMin: 'مطلوب صورة واحدة على الأقل',
+        genderRequired: 'الجنس مطلوب',
         image: 'الصورة',
         name: 'الاسم',
         actions: 'الإجراءات',
@@ -64,10 +69,14 @@ const Specialities = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSpeciality, setEditingSpeciality] = useState(null);
     const [specialities, setSpecialities] = useState([]);
-    const { handleLoading } = useLoading();
     const { language } = useLanguage();
 
     const t = translations[language || 'en'];
+
+    const genderOptions = [
+        { value: 'male', label: t.male || 'Male' },
+        { value: 'female', label: t.female || 'Female' },
+    ];
 
     const validationSchema = Yup.object({
         name: Yup.string()
@@ -76,18 +85,18 @@ const Specialities = () => {
             .max(50, t.nameMax),
         image: Yup.array()
             .min(1, t.imageMin)
-            .required(t.imageRequired)
+            .required(t.imageRequired),
+        gender: Yup.string()
+            .required(t.genderRequired)
+            .oneOf(['male', 'female'], 'Invalid gender')
     });
 
     const getAllSpecialities = async () => {
-        handleLoading(true);
         try {
             const res = await MasterApi.getSpecialties();
             setSpecialities(res.data?.data);
         } catch (err) {
             console.error(err);
-        } finally {
-            handleLoading(false);
         }
     };
 
@@ -98,14 +107,15 @@ const Specialities = () => {
     const formik = useFormik({
         initialValues: {
             name: '',
-            image: []
+            image: [],
+            gender: ''
         },
         validationSchema,
         onSubmit: async (values) => {
-            handleLoading(true);
             try {
                 const formData = new FormData();
                 formData.append('name', values.name);
+                formData.append('gender', values.gender);
 
                 if (values.image) {
                     const imagesArray = Array.isArray(values.image)
@@ -130,7 +140,6 @@ const Specialities = () => {
                 console.error(err);
                 toast.error(err.response?.data?.message || 'Something went wrong');
             } finally {
-                handleLoading(false);
                 handleCloseModal();
                 getAllSpecialities();
             }
@@ -149,7 +158,8 @@ const Specialities = () => {
         setEditingSpeciality(speciality);
         formik.setValues({
             name: speciality.name,
-            image: [speciality.image]
+            image: [speciality.image],
+            gender: speciality.gender || ''
         });
         setIsModalOpen(true);
     };
@@ -178,6 +188,15 @@ const Specialities = () => {
             )
         },
         {
+            header: t.gender,
+            accessorKey: 'gender',
+            cell: ({ row }) => (
+                <span className="font-medium text-gray-900 capitalize">
+                    {row.original.gender}
+                </span>
+            )
+        },
+        {
             header: t.actions,
             accessorKey: 'actions',
             cell: ({ row }) => (
@@ -201,7 +220,6 @@ const Specialities = () => {
 
     const handleDelete = async (id) => {
         if (window.confirm(t.deleteConfirm)) {
-            handleLoading(true);
             try {
                 await MasterApi.deleteSpecialty(id);
                 setSpecialities((prev) => prev.filter((s) => s._id !== id));
@@ -209,7 +227,6 @@ const Specialities = () => {
             } catch (err) {
                 console.error(err);
             } finally {
-                handleLoading(false);
                 getAllSpecialities();
             }
         }
@@ -228,7 +245,7 @@ const Specialities = () => {
     };
 
     return (
-        <div className={`p-6 bg-gray-50 min-h-screen ${language === 'ae' ? 'dir-rtl' : 'dir-ltr'}`}>
+        <div className={`p-6 bg-gray-50 min-h-screen ${language === 'ar' ? 'dir-rtl' : 'dir-ltr'}`}>
             <div className="max-w-7xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-900">
@@ -270,6 +287,19 @@ const Specialities = () => {
                             placeholder={t.enterSpecialityName}
                             error={formik.touched.name && formik.errors.name}
                             isRequired={true}
+                        />
+
+                        <InputField
+                            label={t.gender}
+                            name="gender"
+                            type="select"
+                            value={formik.values.gender}
+                            onChange={handleInputChange}
+                            onBlur={formik.handleBlur}
+                            placeholder={t.selectGender}
+                            error={formik.touched.gender && formik.errors.gender}
+                            isRequired={true}
+                            options={genderOptions}
                         />
 
                         <FileInputField
