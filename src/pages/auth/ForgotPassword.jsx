@@ -7,6 +7,7 @@ import { Scissors, ArrowLeft, Mail, Languages } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import logo from '../../../public/Assests/khyate_logo.png'
+import AuthApi from '../../api/auth.api';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -63,7 +64,10 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+    console.log("email:",e)
+     const res= await AuthApi.requestPasswordReset({ email });
+    console.log(res);
+    // Here you would typically call your API to send the reset link
     // Simulate API call
     setTimeout(() => {
       setSent(true);

@@ -43,6 +43,7 @@ import TailorPortal from "./pages/tailor/TailorPortal.jsx";
 import SignIn from "./pages/auth/SignIn.jsx";
 import Register from "./pages/auth/Register.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
+import AddNewPassword from "./pages/auth/AddNewPassword.jsx";
 import { PublicRoute } from "./ProtectedRoute.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 
@@ -73,6 +74,14 @@ const AppRoutes = () => {
         element={
           <PublicRoute>
             <ForgotPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PublicRoute>
+            <AddNewPassword />
           </PublicRoute>
         }
       />
