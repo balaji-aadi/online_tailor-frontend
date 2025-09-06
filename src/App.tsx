@@ -25,6 +25,8 @@ import Fabric from "./pages/admin/Masters/Fabric.jsx";
 import Specialities from "./pages/admin/Masters/Specialities.jsx";
 import Measurements from "./pages/admin/Masters/Measurements.jsx";
 import Category from "./pages/admin/Masters/Category.jsx";
+import Tax from "./pages/admin/Masters/Tax.jsx";
+import TermsConditions from './pages/admin/TermsConditions.jsx';
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Tailor Pages
@@ -36,6 +38,7 @@ import Portfolio from "./pages/tailor/Portfolio.jsx";
 import Calendar from "./pages/tailor/Calendar.jsx";
 import TailorAnalytics from "./pages/tailor/Analytics.jsx";
 import Messages from "./pages/tailor/Messages.jsx";
+import Size from './pages/tailor/Master/Size.jsx'
 
 // Portal Layouts
 import AdminPortal from "./pages/admin/AdminPortal.jsx";
@@ -109,6 +112,8 @@ const AppRoutes = () => {
           <Route path="master/specialties" element={<Specialities />} />
           <Route path="master/measurements" element={<Measurements />} />
           <Route path="master/category" element={<Category />} />
+          <Route path="master/tax" element={<Tax />} />
+          <Route path="terms-and-conditions" element={<TermsConditions />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 
@@ -122,6 +127,7 @@ const AppRoutes = () => {
           <Route path="calendar" element={<Calendar />} />
           <Route path="analytics" element={<TailorAnalytics />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="master/size" element={<Size />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 

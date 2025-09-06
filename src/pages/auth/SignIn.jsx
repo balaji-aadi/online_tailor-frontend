@@ -19,7 +19,6 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
   const [language, setLanguage] = useState('en');
-  const { handleLoading } = useLoading();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -85,7 +84,6 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      handleLoading(true);
       try {
         const res = await dispatch(login({emailOrPhone:email,password})).unwrap();
         console.log(res.data)
@@ -103,8 +101,6 @@ const SignIn = () => {
       } catch (e) {
         console.error("Login error:", e);
         toast.error("Invalid credentials. Please try again.");
-      } finally {
-        handleLoading(false);
       }
     }catch(err){
       console.log(err)

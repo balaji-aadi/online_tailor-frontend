@@ -5,57 +5,60 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 import TableAlpha from '../../../components/ui/TableAlpha';
 import CommonModal from '../../../components/ui/commonModal';
 import InputField from '../../../components/ui/InputField';
-import { useLoading } from '../../../loader/LoaderContext';
+import { FileInputField } from '../../../components/ui/ImageInputField';
 import MasterApi from '../../../api/master.api';
 import { toast } from 'react-toastify';
 import { useLanguage } from '../../../components/Layout';
 
 const translations = {
   en: {
-    title: 'Category Management',
-    addCategory: 'Add Category',
-    categoryName: 'Category Name',
-    enterCategoryName: 'Enter category name',
-    editCategory: 'Edit Category',
-    addNewCategory: 'Add New Category',
-    updateCategory: 'Update Category',
-    deleteConfirm: 'Are you sure you want to delete this category?',
-    createdSuccess: 'Category created successfully',
-    updatedSuccess: 'Category updated successfully',
-    deletedSuccess: 'Category deleted successfully',
-    nameRequired: 'Category name is required',
-    nameMin: 'Category name must be at least 2 characters',
-    nameMax: 'Category name must be less than 50 characters',
+    title: 'Service Management',
+    addService: 'Add Service',
+    serviceName: 'Service Name',
+    enterServiceName: 'Enter service name',
+    editService: 'Edit Service',
+    addNewService: 'Add New Service',
+    updateService: 'Update Service',
+    deleteConfirm: 'Are you sure you want to delete this service?',
+    createdSuccess: 'Service created successfully',
+    updatedSuccess: 'Service updated successfully',
+    deletedSuccess: 'Service deleted successfully',
+    nameRequired: 'Service name is required',
+    nameMin: 'Service name must be at least 2 characters',
+    nameMax: 'Service name must be less than 50 characters',
     name: 'Name',
     actions: 'Actions',
-    categories: 'categories'
+    services: 'services',
+    image: 'Image',
+    uploadImage: 'Upload Image'
   },
   ar: {
-    title: 'إدارة الفئات',
-    addCategory: 'إضافة فئة',
-    categoryName: 'اسم الفئة',
-    enterCategoryName: 'أدخل اسم الفئة',
-    editCategory: 'تعديل الفئة',
-    addNewCategory: 'إضافة فئة جديدة',
-    updateCategory: 'تحديث الفئة',
-    deleteConfirm: 'هل أنت متأكد أنك تريد حذف هذه الفئة؟',
-    createdSuccess: 'تم إنشاء الفئة بنجاح',
-    updatedSuccess: 'تم تحديث الفئة بنجاح',
-    deletedSuccess: 'تم حذف الفئة بنجاح',
-    nameRequired: 'اسم الفئة مطلوب',
-    nameMin: 'يجب أن يكون اسم الفئة على الأقل حرفين',
-    nameMax: 'يجب أن يكون اسم الفئة أقل من 50 حرفًا',
+    title: 'إدارة الخدمات',
+    addService: 'إضافة خدمة',
+    serviceName: 'اسم الخدمة',
+    enterServiceName: 'أدخل اسم الخدمة',
+    editService: 'تعديل الخدمة',
+    addNewService: 'إضافة خدمة جديدة',
+    updateService: 'تحديث الخدمة',
+    deleteConfirm: 'هل أنت متأكد أنك تريد حذف هذه الخدمة؟',
+    createdSuccess: 'تم إنشاء الخدمة بنجاح',
+    updatedSuccess: 'تم تحديث الخدمة بنجاح',
+    deletedSuccess: 'تم حذف الخدمة بنجاح',
+    nameRequired: 'اسم الخدمة مطلوب',
+    nameMin: 'يجب أن يكون اسم الخدمة على الأقل حرفين',
+    nameMax: 'يجب أن يكون اسم الخدمة أقل من 50 حرفًا',
     name: 'الاسم',
     actions: 'الإجراءات',
-    categories: 'الفئات'
+    services: 'الخدمات',
+    image: 'الصورة',
+    uploadImage: 'تحميل الصورة'
   }
 };
 
 const Category = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const { handleLoading } = useLoading();
+  const [editingService, setEditingService] = useState(null);
+  const [services, setServices] = useState([]);
   const { language } = useLanguage();
 
   const t = translations[language || 'en'];
@@ -64,48 +67,59 @@ const Category = () => {
     name: Yup.string()
       .required(t.nameRequired)
       .min(2, t.nameMin)
-      .max(50, t.nameMax)
+      .max(50, t.nameMax),
+    image: Yup.mixed()
+      .test('fileRequired', 'Image is required', (value) => {
+        if (!editingService) return value && value.length > 0;
+        return true; // Image is optional when editing
+      })
+      .test('fileType', 'Unsupported file type', (value) => {
+        if (!value || value.length === 0) return true;
+        const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        return acceptedTypes.includes(value[0]?.type);
+      })
   });
 
-  const getAllCategories = async () => {
-    handleLoading(true);
+  const getAllServices = async () => {
     try {
       const res = await MasterApi.getCategories();
-      setCategories(res.data?.data || []);
+      setServices(res.data?.data || []);
     } catch (err) {
       console.log(err);
-      toast.error(err.response?.data?.message || 'Failed to fetch categories');
-    } finally {
-      handleLoading(false);
+      toast.error(err.response?.data?.message || 'Failed to fetch services');
     }
   };
 
   useEffect(() => {
-    getAllCategories();
+    getAllServices();
   }, []);
 
   const formik = useFormik({
     initialValues: {
-      name: ''
+      name: '',
+      image: []
     },
     validationSchema,
     onSubmit: async (values) => {
-      handleLoading(true);
       try {
-        if (editingCategory) {
-          await MasterApi.updateCategory(editingCategory._id, values);
+        const formData = new FormData();
+        formData.append('name', values.name);
+        if (values.image && values.image.length > 0) {
+          formData.append('image', values.image[0]);
+        }
+
+        if (editingService) {
+          await MasterApi.updateCategory(editingService._id, formData);
           toast.success(t.updatedSuccess);
         } else {
-          await MasterApi.createCategory(values);
+          await MasterApi.createCategory(formData);
           toast.success(t.createdSuccess);
         }
-        getAllCategories();
+        getAllServices();
         handleCloseModal();
       } catch (err) {
         console.log(err);
         toast.error(err.response?.data?.message || 'Something went wrong');
-      } finally {
-        handleLoading(false);
       }
     }
   });
@@ -116,6 +130,21 @@ const Category = () => {
       accessorKey: 'name',
       cell: ({ row }) => (
         <span className="font-medium text-gray-900 capitalize">{row.original.name}</span>
+      )
+    },
+    {
+      header: t.image,
+      accessorKey: 'image',
+      cell: ({ row }) => (
+        row.original.image ? (
+          <img
+            src={row.original.image}
+            alt={row.original.name}
+            className="w-12 h-12 object-cover rounded"
+          />
+        ) : (
+          <span className="text-gray-400">No image</span>
+        )
       )
     },
     {
@@ -140,42 +169,36 @@ const Category = () => {
     }
   ];
 
-  const handleInputChange = (e) => {
-    formik.handleChange(e);
-  };
-
-  const handleEdit = (category) => {
-    setEditingCategory(category);
+  const handleEdit = (service) => {
+    setEditingService(service);
     formik.setValues({
-      name: category.name
+      name: service.name,
+      image: service.image ? [service.image] : []
     });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm(t.deleteConfirm)) {
-      handleLoading(true);
       try {
         await MasterApi.deleteCategory(id);
         toast.success(t.deletedSuccess);
-        getAllCategories();
+        getAllServices();
       } catch (err) {
         console.log(err);
-        toast.error(err.response?.data?.message || 'Failed to delete category');
-      } finally {
-        handleLoading(false);
+        toast.error(err.response?.data?.message || 'Failed to delete service');
       }
     }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setEditingCategory(null);
+    setEditingService(null);
     formik.resetForm();
   };
 
   const handleAddNew = () => {
-    setEditingCategory(null);
+    setEditingService(null);
     formik.resetForm();
     setIsModalOpen(true);
   };
@@ -190,14 +213,14 @@ const Category = () => {
             className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <Plus className="w-5 h-5" />
-            <span>{t.addCategory}</span>
+            <span>{t.addService}</span>
           </button>
         </div>
 
         <TableAlpha
-          data={categories}
+          data={services}
           columnsConfig={columnsConfig}
-          itemsName={t.categories}
+          itemsName={t.services}
         />
 
         <CommonModal
@@ -205,23 +228,35 @@ const Category = () => {
           onClose={handleCloseModal}
           onSave={formik.handleSubmit}
           onCancel={handleCloseModal}
-          title={editingCategory ? t.editCategory : t.addNewCategory}
-          saveText={editingCategory ? t.updateCategory : t.addCategory}
+          title={editingService ? t.editService : t.addNewService}
+          saveText={editingService ? t.updateService : t.addService}
           size="md"
           isLoading={formik.isSubmitting}
         >
           <form onSubmit={formik.handleSubmit} className="space-y-4">
             <InputField
-              label={t.categoryName}
+              label={t.serviceName}
               name="name"
               type="text"
               value={formik.values.name}
-              onChange={handleInputChange}
+              onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              placeholder={t.enterCategoryName}
+              placeholder={t.enterServiceName}
               error={formik.touched.name && formik.errors.name}
               isRequired={true}
               labelClassName={language === 'ar' ? 'text-right' : ''}
+            />
+            <FileInputField
+              label={t.image}
+              name="image"
+              value={formik.values.image}
+              onChange={(files) => formik.setFieldValue('image', files)}
+              onBlur={() => formik.setFieldTouched('image', true)}
+              error={formik.touched.image && formik.errors.image}
+              isRequired={!editingService}
+              accept="image/jpeg,image/png,image/gif"
+              multiple={false}
+              isRTL={language === 'ar'}
             />
           </form>
         </CommonModal>

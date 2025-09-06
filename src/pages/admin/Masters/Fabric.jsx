@@ -6,7 +6,6 @@ import TableAlpha from '../../../components/ui/TableAlpha';
 import CommonModal from '../../../components/ui/commonModal';
 import InputField from '../../../components/ui/InputField';
 import { FileInputField } from '../../../components/ui/ImageInputField';
-import { useLoading } from '../../../loader/LoaderContext';
 import MasterApi from '../../../api/master.api';
 import { toast } from 'react-toastify';
 import { useLanguage } from '../../../components/Layout';
@@ -64,7 +63,6 @@ const Fabric = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFabric, setEditingFabric] = useState(null);
   const [fabrics, setFabrics] = useState([]);
-  const { handleLoading } = useLoading();
   const { language } = useLanguage();
 
   const t = translations[language || 'en'];
@@ -80,14 +78,11 @@ const Fabric = () => {
   });
 
   const getAllFabrics = async () => {
-    handleLoading(true);
     try {
       const res = await MasterApi.getFabrics();
       setFabrics(res.data?.data);
     } catch (err) {
       console.log(err);
-    } finally {
-      handleLoading(false);
     }
   };
 
@@ -102,7 +97,6 @@ const Fabric = () => {
     },
     validationSchema,
     onSubmit: async (values) => {
-      handleLoading(true);
       try {
         const formData = new FormData();
         formData.append("name", values.name);
@@ -122,7 +116,6 @@ const Fabric = () => {
         console.log(err);
         toast.error(err.response?.data?.message || 'Something went wrong');
       } finally {
-        handleLoading(false);
         handleCloseModal();
         getAllFabrics()
       }
@@ -192,7 +185,6 @@ const Fabric = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm(t.deleteConfirm)) {
-      handleLoading(true);
       try {
         await MasterApi.deleteFabric(id);
         setFabrics(prev => prev.filter(fabric => fabric.id !== id));
@@ -200,7 +192,6 @@ const Fabric = () => {
       } catch (err) {
         console.log(err);
       } finally {
-        handleLoading(false);
         getAllFabrics();
       }
     }

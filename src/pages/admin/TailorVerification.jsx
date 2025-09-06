@@ -155,11 +155,10 @@ const TailorVerification = () => {
   const [selectedTailorForAction, setSelectedTailorForAction] = useState(null);
   const [actionType, setActionType] = useState('');
   const [actionReason, setActionReason] = useState('');
-  const { handleLoading } = useLoading();
   const [tailors, setTailors] = useState([]);
   const [expandedSpecialties, setExpandedSpecialties] = useState({});
   const [documentPage, setDocumentPage] = useState({});
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'active', 'deactivated'
+  const [activeTab, setActiveTab] = useState('all');
 
   const t = translations[language || 'en'];
 
@@ -210,7 +209,6 @@ const TailorVerification = () => {
   };
 
   const fetchTailors = async () => {
-    handleLoading(true);
     try {
       const res = await TailorApi.getAllTailors();
       const mappedTailors = res.data.data.map(tailor => mapApiResponseToTailor(tailor));
@@ -230,8 +228,6 @@ const TailorVerification = () => {
     } catch (error) {
       console.error("Error fetching tailors:", error);
       toast.error(t?.fetchError);
-    } finally {
-      handleLoading(false);
     }
   };
 
@@ -248,7 +244,6 @@ const TailorVerification = () => {
   };
 
   const handleSaveTailor = async (formData) => {
-    handleLoading(true);
     try {
       const res = await AuthApi.register(formData);
       handleCloseModal();
@@ -259,8 +254,6 @@ const TailorVerification = () => {
     } catch (error) {
       console.error('Error registering tailor:', error);
       toast.error(t?.registerError);
-    } finally {
-      handleLoading(false);
     }
   };
 
@@ -270,8 +263,6 @@ const TailorVerification = () => {
   };
 
   const handleApproveTailor = async (tailor) => {
-    handleLoading(true);
-
     const payload = {
       userId: tailor?.id,
       action: "approve",
@@ -283,13 +274,10 @@ const TailorVerification = () => {
     } catch (error) {
       console.error('Error approving tailor:', error);
       toast.error(t?.approveError);
-    } finally {
-      handleLoading(false);
-    }
+    } 
   };
 
   const handleActivateTailor = async (tailor) => {
-    handleLoading(true);
     try {
       await TailorApi.tailorStatus({
         userId: tailor.id,
@@ -300,8 +288,6 @@ const TailorVerification = () => {
     } catch (error) {
       console.error('Error activating tailor:', error);
       toast.error(t?.activateError);
-    } finally {
-      handleLoading(false);
     }
   };
 
@@ -317,7 +303,6 @@ const TailorVerification = () => {
       toast.error(t?.reasonRequired.replace('{action}', actionType === 'deactivate' ? t?.deactivateTailor.toLowerCase() : t?.rejectTailor.toLowerCase()));
       return;
     }
-    handleLoading(true);
     try {
       await TailorApi.tailorStatus({
         userId: selectedTailorForAction.id,
@@ -348,8 +333,6 @@ const TailorVerification = () => {
         errorMessage = t?.activateError;
       }
       toast.error(errorMessage);
-    } finally {
-      handleLoading(false);
     }
   };
 

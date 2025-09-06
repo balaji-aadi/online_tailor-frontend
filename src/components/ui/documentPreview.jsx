@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Eye, Download, FileText, X } from 'lucide-react';
 
 const DocumentPreview = ({ documents = [] }) => {
@@ -13,6 +13,23 @@ const DocumentPreview = ({ documents = [] }) => {
     const handleOpenInNewTab = (doc) => {
         window.open(doc.url, '_blank');
     };
+
+    const handleDownload = async (doc) => {
+        try {
+            const response = await fetch(doc.url, { mode: "cors" });
+            const blob = await response.blob();
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = doc.name || "document"; // file name
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(link.href);
+        } catch (error) {
+            console.error("Download failed:", error);
+        }
+    };
+
 
     const closePreview = () => {
         setIsPreviewOpen(false);
@@ -45,9 +62,9 @@ const DocumentPreview = ({ documents = [] }) => {
                             <Eye className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => handleOpenInNewTab(doc)}
+                            onClick={() => handleDownload(doc)}
                             className="p-1 text-green-600 hover:bg-green-100 rounded-full"
-                            title="Open in new tab"
+                            title="Download"
                         >
                             <Download className="w-4 h-4" />
                         </button>
@@ -57,7 +74,7 @@ const DocumentPreview = ({ documents = [] }) => {
 
             {/* Preview Modal */}
             {isPreviewOpen && selectedDoc && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style={{ marginTop: "0" }}>
                     <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full mx-4 overflow-hidden">
                         <div className="flex items-center justify-between p-4 border-b">
                             <h3 className="text-lg font-semibold">{selectedDoc.name}</h3>
@@ -83,7 +100,7 @@ const DocumentPreview = ({ documents = [] }) => {
                                     className="w-full h-96"
                                     title={selectedDoc.name}
                                 />
-                            ) : selectedDoc.type.startsWith('image/') ? (
+                            ) : selectedDoc.type.startsWith('image') ? (
                                 <img
                                     src={selectedDoc.url}
                                     alt={selectedDoc.name}

@@ -23,7 +23,8 @@ import {
   ChevronUp,
   Shirt,
   Target,
-  Ruler
+  Ruler,
+  BadgePercent,
 } from 'lucide-react';
 import { useLanguage } from './Layout';
 
@@ -64,9 +65,9 @@ const Navigation = ({ type = 'admin' }) => {
   };
 
   const toggleExpanded = (itemKey) => {
-    setExpandedItems(prev => ({
+    setExpandedItems((prev) => ({
       ...prev,
-      [itemKey]: !prev[itemKey]
+      [itemKey]: !prev[itemKey],
     }));
   };
 
@@ -75,28 +76,28 @@ const Navigation = ({ type = 'admin' }) => {
       title: language === 'en' ? 'Dashboard' : 'لوحة التحكم',
       href: '/admin/dashboard',
       icon: LayoutDashboard,
-      exact: true
+      exact: true,
     },
     {
       title: language === 'en' ? 'User Management' : 'إدارة المستخدمين',
       href: '/admin/users',
-      icon: Users
+      icon: Users,
     },
     {
       title: language === 'en' ? 'Analytics' : 'التحليلات',
       href: '/admin/analytics',
-      icon: BarChart3
+      icon: BarChart3,
     },
     {
       title: language === 'en' ? 'Tailor Verification' : 'تحقق من الخياطين',
       href: '/admin/verification',
       icon: UserCheck,
     },
-    {
-      title: language === 'en' ? 'Content Management' : 'إدارة المحتوى',
-      href: '/admin/content',
-      icon: FileText
-    },
+    // {
+    //   title: language === 'en' ? 'Content Management' : 'إدارة المحتوى',
+    //   href: '/admin/content',
+    //   icon: FileText,
+    // },
     {
       title: language === 'en' ? 'Disputes' : 'النزاعات',
       href: '/admin/disputes',
@@ -105,7 +106,7 @@ const Navigation = ({ type = 'admin' }) => {
     {
       title: language === 'en' ? 'Reports' : 'التقارير',
       href: '/admin/reports',
-      icon: TrendingUp
+      icon: TrendingUp,
     },
     {
       key: 'masters',
@@ -116,31 +117,40 @@ const Navigation = ({ type = 'admin' }) => {
         {
           title: language === 'en' ? 'Fabrics' : 'الأقمشة',
           href: '/admin/master/fabrics',
-          icon: Shirt
+          icon: Shirt,
         },
         {
-          title: language === 'en' ? 'Specialties' : 'التخصصات',
+          title: language === 'en' ? 'Garment Types' : 'التخصصات',
           href: '/admin/master/specialties',
-          icon: Target
+          icon: Target,
         },
         {
           title: language === 'en' ? 'Measurements' : 'القياسات',
           href: '/admin/master/measurements',
-          icon: Ruler
+          icon: Ruler,
         },
         {
-          title: language === 'en' ? 'Category' : 'الفئة',
+          title: language === 'en' ? 'Services' : 'الفئة',
           href: '/admin/master/category',
-          icon:  Globe,
-        }
-
-      ]
+          icon: Globe,
+        },
+        {
+          title: language === 'en' ? 'Tax' : 'الضرائب',
+          href: '/admin/master/tax',
+          icon: BadgePercent,
+        },
+      ],
+    },
+    {
+      title: language === 'en' ? 'Terms & Conditions' : 'الشروط والأحكام',
+      href: '/admin/terms-and-conditions',
+      icon: FileText,
     },
     {
       title: language === 'en' ? 'Settings' : 'الإعدادات',
       href: '/admin/settings',
-      icon: Settings
-    }
+      icon: Settings,
+    },
   ];
 
   const tailorNavItems = [
@@ -148,12 +158,12 @@ const Navigation = ({ type = 'admin' }) => {
       title: language === 'en' ? 'Dashboard' : 'لوحة التحكم',
       href: '/tailor/dashboard',
       icon: LayoutDashboard,
-      exact: true
+      exact: true,
     },
     {
       title: language === 'en' ? 'Profile' : 'الملف الشخصي',
       href: '/tailor/profile',
-      icon: Users
+      icon: Users,
     },
     {
       title: language === 'en' ? 'Orders' : 'الطلبات',
@@ -163,28 +173,28 @@ const Navigation = ({ type = 'admin' }) => {
     {
       title: language === 'en' ? 'Services' : 'الخدمات',
       href: '/tailor/services',
-      icon: Scissors
+      icon: Scissors,
     },
     {
       title: language === 'en' ? 'Portfolio' : 'معرض الأعمال',
       href: '/tailor/portfolio',
-      icon: Star
+      icon: Star,
     },
     {
       title: language === 'en' ? 'Calendar' : 'التقويم',
       href: '/tailor/calendar',
-      icon: Calendar
+      icon: Calendar,
     },
     {
       title: language === 'en' ? 'Analytics' : 'التحليلات',
       href: '/tailor/analytics',
-      icon: BarChart3
+      icon: BarChart3,
     },
     {
       title: language === 'en' ? 'Messages' : 'الرسائل',
       href: '/tailor/messages',
       icon: MessageSquare,
-    }
+    },
   ];
 
   const navItems = type === 'admin' ? adminNavItems : tailorNavItems;
@@ -199,17 +209,24 @@ const Navigation = ({ type = 'admin' }) => {
           <>
             <button
               onClick={() => toggleExpanded(item.key || item.href)}
-              className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-300 gap-4 group text-muted-foreground hover:text-foreground hover:bg-secondary/50 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
+              className={`flex items-center w-full  py-3 rounded-xl transition-all duration-300 gap-4 group text-muted-foreground hover:text-foreground hover:bg-secondary/50 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
               style={{ paddingLeft: level > 0 ? `${level * 20 + 16}px` : '16px' }}
+              title={isCollapsed ? item.title : undefined} // Tooltip for collapsed state
             >
-              {item.icon && <item.icon className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`} />}
+              {item.icon && (
+                <item.icon
+                  className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`}
+                />
+              )}
               {!isCollapsed && (
                 <>
-                  <span className="font-semibold flex-1 text-start text-xs">{item.title}</span>
+                  <span className="font-semibold flex-1 text-start text-xs">
+                    {item.title}
+                  </span>
                   {isExpanded ? (
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="w-4 h-4 mr-4" />
                   ) : (
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-4 h-4 mr-4" />
                   )}
                 </>
               )}
@@ -217,7 +234,7 @@ const Navigation = ({ type = 'admin' }) => {
 
             {isExpanded && !isCollapsed && (
               <ul className="mt-1 space-y-1">
-                {item.children.map(child => renderNavItem(child, level + 1))}
+                {item.children.map((child) => renderNavItem(child, level + 1))}
               </ul>
             )}
           </>
@@ -227,19 +244,31 @@ const Navigation = ({ type = 'admin' }) => {
             end={item.exact}
             onClick={() => isMobile && setIsOpen(false)}
             className={({ isActive }) =>
-              `flex items-center px-4 py-3 rounded-xl transition-all duration-300 gap-4 group ${isActive
+              `flex items-center  py-3 rounded-xl transition-all duration-300 gap-4 group ${isActive
                 ? 'bg-primary text-primary-foreground shadow-md'
                 : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
               } ${direction === 'rtl' ? 'flex-row-reverse' : ''}`
             }
             style={{ paddingLeft: level > 0 ? `${level * 20 + 16}px` : '16px' }}
+            title={isCollapsed ? item.title : undefined} // Tooltip for collapsed state
           >
-            {item.icon && <item.icon className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`} />}
-            <span className="font-semibold text-xs">{item.title}</span>
-            {item.badge && (
-              <span className={`ml-auto px-2 py-1 text-xs bg-gold text-gold-foreground rounded-full font-semibold ${direction === 'rtl' ? 'ml-0 mr-auto' : ''}`}>
-                {item.badge}
-              </span>
+            {item.icon && (
+              <item.icon
+                className={`w-5 h-5 ${direction === 'rtl' ? 'ml-3' : 'mr-3'}`}
+              />
+            )}
+            {!isCollapsed && (
+              <>
+                <span className="font-semibold text-xs">{item.title}</span>
+                {item.badge && (
+                  <span
+                    className={`ml-auto px-2 py-1 text-xs bg-gold text-gold-foreground rounded-full font-semibold ${direction === 'rtl' ? 'ml-0 mr-auto' : ''
+                      }`}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </>
             )}
           </NavLink>
         )}
@@ -254,13 +283,24 @@ const Navigation = ({ type = 'admin' }) => {
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setIsOpen(false)}
         />
-        <nav className={`fixed top-0 ${direction === 'rtl' ? 'right-0' : 'left-0'} h-full w-64 bg-card border-r border-border z-50 shadow-2xl transform transition-transform duration-300 md:hidden ${isOpen ? 'translate-x-0' : direction === 'rtl' ? 'translate-x-full' : '-translate-x-full'}`}>
+        <nav
+          className={`fixed top-0 ${direction === 'rtl' ? 'right-0' : 'left-0'
+            } h-full w-64 bg-card border-r border-border z-50 shadow-2xl transform transition-transform duration-300 md:hidden ${isOpen
+              ? 'translate-x-0'
+              : direction === 'rtl'
+                ? 'translate-x-full'
+                : '-translate-x-full'
+            }`}
+        >
           <div className="p-4 flex items-center justify-between border-b border-border">
             <h2 className="text-lg font-semibold text-foreground">
-              {type === 'admin' ?
-                (language === 'en' ? 'Admin Portal' : 'بوابة الإدارة') :
-                (language === 'en' ? 'Tailor Portal' : 'بوابة الخياط')
-              }
+              {type === 'admin'
+                ? language === 'en'
+                  ? 'Admin Portal'
+                  : 'بوابة الإدارة'
+                : language === 'en'
+                  ? 'Tailor Portal'
+                  : 'بوابة الخياط'}
             </h2>
             <button
               onClick={() => setIsOpen(false)}
@@ -270,9 +310,7 @@ const Navigation = ({ type = 'admin' }) => {
             </button>
           </div>
           <div className="p-4 overflow-y-auto h-full pb-20">
-            <ul className="space-y-2">
-              {navItems.map(item => renderNavItem(item))}
-            </ul>
+            <ul className="space-y-2">{navItems.map((item) => renderNavItem(item))}</ul>
           </div>
         </nav>
       </>
@@ -291,43 +329,75 @@ const Navigation = ({ type = 'admin' }) => {
             <Menu className="w-6 h-6" />
           </button>
           <h2 className="text-lg font-semibold text-foreground">
-            {type === 'admin' ?
-              (language === 'en' ? 'Admin' : 'إدارة') :
-              (language === 'en' ? 'Tailor' : 'خياط')
-            }
+            {type === 'admin'
+              ? language === 'en'
+                ? 'Admin'
+                : 'إدارة'
+              : language === 'en'
+                ? 'Tailor'
+                : 'خياط'}
           </h2>
           <div className="w-6"></div>
         </div>
       )}
 
       {/* Desktop sidebar */}
-      <nav className={`bg-card border-r border-border h-full shadow-soft hidden md:block transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+      <nav
+        className={`bg-card border-r border-border h-full shadow-soft hidden md:block transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'
+          }`}
+      >
         <div className="p-4 flex items-center justify-between border-b border-border">
           {!isCollapsed && (
             <h2 className="text-lg font-semibold text-foreground">
-              {type === 'admin' ?
-                (language === 'en' ? 'Admin Portal' : 'بوابة الإدارة') :
-                (language === 'en' ? 'Tailor Portal' : 'بوابة الخياط')
-              }
+              {type === 'admin'
+                ? language === 'en'
+                  ? 'Admin Portal'
+                  : 'بوابة الإدارة'
+                : language === 'en'
+                  ? 'Tailor Portal'
+                  : 'بوابة الخياط'}
             </h2>
           )}
           <button
             onClick={toggleSidebar}
             className="p-1 rounded-md hover:bg-secondary hover:text-white"
-            aria-label={isCollapsed ? (language === 'en' ? 'Expand sidebar' : 'توسيع الشريط الجانبي') : (language === 'en' ? 'Collapse sidebar' : 'طي الشريط الجانبي')}
+            aria-label={
+              isCollapsed
+                ? language === 'en'
+                  ? 'Expand sidebar'
+                  : 'توسيع الشريط الجانبي'
+                : language === 'en'
+                  ? 'Collapse sidebar'
+                  : 'طي الشريط الجانبي'
+            }
+            title={
+              isCollapsed
+                ? language === 'en'
+                  ? 'Expand sidebar'
+                  : 'توسيع الشريط الجانبي'
+                : language === 'en'
+                  ? 'Collapse sidebar'
+                  : 'طي الشريط الجانبي'
+            }
           >
             {direction === 'rtl' ? (
-              isCollapsed ? <ChevronLeft className="w-5 h-5 " /> : <ChevronRight className="w-5 h-5 " />
+              isCollapsed ? (
+                <ChevronLeft className="w-5 h-5" />
+              ) : (
+                <ChevronRight className="w-5 h-5" />
+              )
             ) : (
-              isCollapsed ? <ChevronRight className="w-5 h-5 ml-2 " /> : <ChevronLeft className="w-5 h-5 " />
+              isCollapsed ? (
+                <ChevronRight className="w-5 h-5 ml-2" />
+              ) : (
+                <ChevronLeft className="w-5 h-5" />
+              )
             )}
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto h-full pb-20">
-          <ul className="space-y-2">
-            {navItems.map(item => renderNavItem(item))}
-          </ul>
+        <div className="p-4 overflow-y-auto h-[90vh] pb-20">
+          <ul className="space-y-2">{navItems.map((item) => renderNavItem(item))}</ul>
         </div>
       </nav>
 

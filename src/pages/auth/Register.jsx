@@ -2,6 +2,7 @@ import { useFormik } from 'formik';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Scissors, Languages, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PhoneInput from 'react-phone-number-input';
@@ -10,7 +11,6 @@ import logo from '../../../public/Assests/khyate_logo.png';
 import { useState, useEffect } from 'react';
 import InputField from '../../components/ui/InputField';
 import { FileInputField } from '../../components/ui/ImageInputField';
-import { useLoading } from '../../loader/LoaderContext';
 import AuthApi from '../../api/auth.api';
 import MasterApi from '../../api/master.api';
 import { toast } from 'react-toastify';
@@ -100,37 +100,124 @@ export const arabicTranslations = {
   'Select languages': 'اختر اللغات',
   'Describe your tailoring services and expertise': 'صِف خدمات الخياطة وخبراتك',
   'Instagram profile URL': 'رابط الملف الشخصي على إنستغرام',
-  'Facebook page URL': 'رابط الصفحة على الفيسبック',
+  'Facebook page URL': 'رابط الصفحة على الفيسبك',
   'Website URL': 'رابط الموقع الإلكتروني',
   'Select expiry date': 'اختر تاريخ الانتهاء',
   'Important: Your email address will be used for all communications, account approval notifications, and password recovery. Please ensure it is correct.':
     'مهم: سيتم استخدام عنوان بريدك الإلكتروني لجميع الاتصالات، وإشعارات الموافقة على الحساب، واستعادة كلمة المرور. يرجى التأكد من صحته.',
   'Email verified! Important communications will be sent to this address.':
-    'تم التحقق من البريد الإلكتروني! سيتم إرسال الاتصالات المهمة إلى هذا العنوان.'
+    'تم التحقق من البريد الإلكتروني! سيتم إرسال الاتصالات المهمة إلى هذا العنوان.',
+  'I agree to the': 'أوافق على',
+  'Terms of Service': 'شروط الخدمة',
+  'and': 'و',
+  'Privacy Policy': 'سياسة الخصوصية',
+  'You must agree to the terms and policies': 'يجب أن توافق على الشروط والسياسات',
+  'Geolocation is not supported by this browser': 'المتصفح لا يدعم تحديد الموقع الجغرافي',
+  'Location fetched successfully': 'تم جلب الموقع بنجاح',
+  'Unable to retrieve your location': 'غير قادر على استرجاع موقعك',
+  'Location access denied. Please enable location permissions in your browser settings.': 'تم رفض الوصول إلى الموقع. يرجى تمكين إذن الموقع في إعدادات المتصفح.',
+  'Location information is unavailable.': 'معلومات الموقع غير متوفرة.',
+  'Location request timed out. Please try again.': 'انتهت مهلة طلب الموقع. يرجى المحاولة مرة أخرى.',
+  'Fetching Location...': 'جاري جلب الموقع...',
+  'Get My Current Location': 'الحصول على موقعي الحالي',
+  'Location found': 'تم العثور على الموقع',
+  'Failed to get location': 'فشل في الحصول على الموقع',
+  'This helps customers find your business more easily': 'هذا يساعد العملاء في العثور على عملك بسهولة أكبر',
+  'Account created successfully! Please wait for verification.': 'تم إنشاء الحساب بنجاح! يرجى الانتظار للتحقق.',
+  'You will be notified once your account is verified.': 'سيتم إخطارك بمجرد التحقق من حسابك.',
+  'Check your email for verification updates.': 'تحقق من بريدك الإلكتروني لتحديثات التحقق.',
+  'An error occurred while creating your account': 'حدث خطأ أثناء إنشاء حسابك',
+  'Business name is required': 'اسم العمل مطلوب',
+  'Owner name is required': 'اسم المالك مطلوب',
+  'Email is required': 'البريد الإلكتروني مطلوب',
+  'At least one location is required': 'موقع واحد على الأقل مطلوب',
+  'Gender preference is required': 'التفضيل حسب الجنس مطلوب',
+  'At least one specialty is required': 'تخصص واحد على الأقل مطلوب',
+  'Experience is required': 'الخبرة مطلوبة',
+  'Emirates ID expiry date is required': 'تاريخ انتهاء الهوية الإماراتية مطلوب',
+  'Trade License is required': 'رخصة التجارة مطلوبة',
+  'Emirates ID is required': 'الهوية الإماراتية مطلوبة',
 };
 
 const Register = () => {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('en');
   const [isRTL, setIsRTL] = useState(false);
-  const { handleLoading } = useLoading();
   const [specialty, setSpecialty] = useState([]);
+  const [locationStatus, setLocationStatus] = useState('idle');
+  const [userCoordinates, setUserCoordinates] = useState(null);
+  const [termsContent, setTermsContent] = useState('');
+  const [privacyContent, setPrivacyContent] = useState('');
 
   const fetchMasterData = async () => {
-    handleLoading(true);
     try {
       const res = await MasterApi.getSpecialties();
       setSpecialty(res.data?.data);
     } catch (error) {
       console.error("Error fetching master data:", error);
-    } finally {
-      handleLoading(false);
+    }
+  };
+
+  const fetchTermsPolicies = async () => {
+    try {
+      const res = await MasterApi.getTermsPolicies({ userType: 'tailor' });
+      const data = res.data?.data || [];
+      const terms = data.find(item => item.contentType === 'terms') || { content: '' };
+      const privacy = data.find(item => item.contentType === 'privacy') || { content: '' };
+      setTermsContent(terms.content);
+      setPrivacyContent(privacy.content);
+    } catch (error) {
+      console.error("Error fetching terms and policies:", error);
+      toast.error(t('Failed to load terms and policies'));
     }
   };
 
   useEffect(() => {
     fetchMasterData();
+    fetchTermsPolicies();
   }, []);
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error(t('Geolocation is not supported by this browser'));
+      return;
+    }
+
+    setLocationStatus('fetching');
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserCoordinates([longitude, latitude]);
+        setLocationStatus('success');
+        toast.success(t('Location fetched successfully'));
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        setLocationStatus('error');
+
+        let errorMessage = t('Unable to retrieve your location');
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = t('Location access denied. Please enable location permissions in your browser settings.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = t('Location information is unavailable.');
+            break;
+          case error.TIMEOUT:
+            errorMessage = t('Location request timed out. Please try again.');
+            break;
+        }
+
+        toast.error(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
 
   const specialtyOptions = specialty.map((item) => ({
     value: item._id,
@@ -195,7 +282,12 @@ const Register = () => {
         instagram: '',
         facebook: '',
         website: ''
-      }
+      },
+      coordinates: {
+        type: 'Point',
+        coordinates: [0, 0]
+      },
+      termsPrivacyAgree: false,
     },
     validate: (values) => {
       const errors = {};
@@ -209,16 +301,24 @@ const Register = () => {
       if (!values.emiratesIdExpiry) errors.emiratesIdExpiry = t('Emirates ID expiry date is required');
       if (!values.tradeLicense.length) errors.tradeLicense = t('Trade License is required');
       if (!values.emiratesId.length) errors.emiratesId = t('Emirates ID is required');
+      if (!values.termsPrivacyAgree) errors.termsPrivacyAgree = t('You must agree to the terms and policies');
 
       return errors;
     },
     onSubmit: async (values) => {
       setLoading(true);
-      handleLoading(true);
 
       try {
         const formData = new FormData();
         formData.append("user_role", 2);
+
+        if (userCoordinates) {
+          values.coordinates = {
+            type: "Point",
+            coordinates: userCoordinates,
+          };
+        }
+
         Object.keys(values).forEach((key) => {
           if (
             key !== "tradeLicense" &&
@@ -237,6 +337,10 @@ const Register = () => {
             }
           }
         });
+
+        formData.append("coordinates[type]", "Point");
+        formData.append("coordinates[coordinates][]", String(values.coordinates.coordinates[0]));
+        formData.append("coordinates[coordinates][]", String(values.coordinates.coordinates[1]));
 
         values.tradeLicense.forEach((file) => {
           formData.append("tradeLicense", file);
@@ -261,11 +365,11 @@ const Register = () => {
         toast.success(t('Account created successfully! Please wait for verification.'));
         toast.info('You will be notified once your account is verified.');
         toast.info('Check your email for verification updates.');
+        formik.resetForm();
       } catch (error) {
         toast.error(t('An error occurred while creating your account'));
       } finally {
         setLoading(false);
-        handleLoading(false)
       }
     }
   });
@@ -292,7 +396,7 @@ const Register = () => {
         <div
           className="w-full h-full bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1591369822096-ffd140ec948a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80)',
+            backgroundImage: 'ur[](https://images.unsplash.com/photo-1591369822096-ffd140ec948a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80)',
           }}
         >
           <div className="h-full w-full bg-gradient-to-r from-background/80 to-transparent flex items-center justify-start">
@@ -443,6 +547,44 @@ const Register = () => {
                           placeholder={t('Select locations')}
                           dir={isRTL ? 'rtl' : 'ltr'}
                         />
+
+                        <div className="md:col-span-2">
+                          <div className="flex items-center gap-4">
+                            <button
+                              type="button"
+                              onClick={getCurrentLocation}
+                              disabled={locationStatus === "fetching"}
+                              className={`px-4 py-2 rounded-lg border ${locationStatus === "fetching"
+                                ? "bg-gray-200 cursor-not-allowed"
+                                : "bg-blue-100 hover:bg-blue-200"
+                                } transition-colors`}
+                            >
+                              {locationStatus === "fetching"
+                                ? t("Fetching Location...")
+                                : t("Get My Current Location")}
+                            </button>
+
+                            {locationStatus === "success" &&
+                              userCoordinates && (
+                                <div className="text-sm text-green-600">
+                                  {t("Location found")}:{" "}
+                                  {userCoordinates[0].toFixed(6)},{" "}
+                                  {userCoordinates[1].toFixed(6)}
+                                </div>
+                              )}
+
+                            {locationStatus === "error" && (
+                              <div className="text-sm text-red-600">
+                                {t("Failed to get location")}
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {t(
+                              "This helps customers find your business more easily"
+                            )}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
@@ -649,6 +791,61 @@ const Register = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Terms and Policies Agreement */}
+                    <div className="mt-6">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="termsPrivacyAgree"
+                          name="termsPrivacyAgree"
+                          checked={formik.values.termsPrivacyAgree}
+                          onChange={(e) => formik.setFieldValue('termsPrivacyAgree', e.target.checked)}
+                          onBlur={formik.handleBlur}
+                          className={`h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded ${isRTL ? 'ml-2' : 'mr-2'}`}
+                        />
+                        <label htmlFor="termsPrivacyAgree" className="text-sm text-gray-700">
+                          {t('I agree to the')}{' '}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button type="button" className="text-primary hover:underline font-medium">
+                                {t('Terms of Service')}
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto bg-white shadow-2xl rounded-xl p-6">
+                              <DialogHeader>
+                                <DialogTitle className="text-2xl font-semibold text-gray-800">{t('Terms of Service')}</DialogTitle>
+                              </DialogHeader>
+                              <div
+                                className="py-4 text-gray-600 prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: termsContent || 'Loading terms...' }}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                          {' '}{t('and')}{' '}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button type="button" className="text-primary hover:underline font-medium">
+                                {t('Privacy Policy')}
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto bg-white shadow-2xl rounded-xl p-6">
+                              <DialogHeader>
+                                <DialogTitle className="text-2xl font-semibold text-gray-800">{t('Privacy Policy')}</DialogTitle>
+                              </DialogHeader>
+                              <div
+                                className="py-4 text-gray-600 prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: privacyContent || 'Loading privacy policy...' }}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                        </label>
+                      </div>
+                      {formik.touched.termsPrivacyAgree && formik.errors.termsPrivacyAgree && (
+                        <p className="text-red-500 text-sm mt-1">{formik.errors.termsPrivacyAgree}</p>
+                      )}
+                    </div>
+
                   </section>
                   <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                     <Button
