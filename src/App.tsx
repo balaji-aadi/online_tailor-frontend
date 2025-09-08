@@ -26,6 +26,7 @@ import Specialities from "./pages/admin/Masters/Specialities.jsx";
 import Measurements from "./pages/admin/Masters/Measurements.jsx";
 import Category from "./pages/admin/Masters/Category.jsx";
 import Tax from "./pages/admin/Masters/Tax.jsx";
+import Color from "./pages/admin/Masters/Color.jsx";
 import TermsConditions from './pages/admin/TermsConditions.jsx';
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -113,6 +114,7 @@ const AppRoutes = () => {
           <Route path="master/measurements" element={<Measurements />} />
           <Route path="master/category" element={<Category />} />
           <Route path="master/tax" element={<Tax />} />
+          <Route path="master/color" element={<Color />} />
           <Route path="terms-and-conditions" element={<TermsConditions />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>

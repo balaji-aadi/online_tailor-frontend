@@ -15,10 +15,10 @@ import 'react-quill/dist/quill.snow.css';
 const translations = {
     en: {
         title: 'Measurements Management',
-        subtitle: 'Define measurement templates for different garment types',
+        subtitle: 'Define measurement templates for different specialties',
         addMeasurement: 'Add Measurement Template',
         templateName: 'Template Name',
-        garmentType: 'Garment Type',
+        garmentType: 'Specialties',
         gender: 'Gender',
         description: 'Description',
         measurementGuide: 'Measurement Guide',
@@ -29,7 +29,7 @@ const translations = {
         action: 'Action',
         addPoint: 'Add Point',
         measurementGuideInfo: 'Upload an image that shows how to take each measurement. This will help tailors and customers take accurate measurements.',
-        measurementPointsGuide: 'Define all the measurement points needed for this garment type. Mark as "Required" for measurements that are essential.',
+        measurementPointsGuide: 'Define all the measurement points needed for this specialities. Mark as "Required" for measurements that are essential.',
         basicDetails: 'Basic Details',
         createdAt: 'Created',
         viewDetails: 'View Details',
@@ -39,7 +39,7 @@ const translations = {
         deletedSuccess: 'Measurement deleted successfully',
         nameRequired: 'Measurement template name is required',
         nameMin: 'Name must be at least 2 characters',
-        garmentTypeRequired: 'Garment type is required',
+        garmentTypeRequired: 'Specialties is required',
         genderRequired: 'Gender is required',
         descriptionRequired: 'Description is required',
         imageRequired: 'Image is required',
@@ -50,7 +50,7 @@ const translations = {
         inches: 'Inches',
         centimeters: 'Centimeters',
         measurementTemplates: 'measurement templates',
-        selectGarmentType: 'Select garment type',
+        selectGarmentType: 'Select specialities',
         selectGender: 'Select gender',
         describeMeasurementTemplate: 'Describe this measurement template...',
         measurementPointsGuideTitle: 'Measurement Points Guide'
@@ -125,6 +125,8 @@ const Measurements = () => {
     const [garmentTypes, setGarmentTypes] = useState([]);
     const { language } = useLanguage();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [removeList, setRemoveList] = useState([]);
+    
 
     const t = translations[language || 'en'];
 
@@ -204,6 +206,10 @@ const Measurements = () => {
 
                 formData.append('measurementPoints', JSON.stringify(values.measurementPoints));
 
+                if (editingMeasurement && removeList.length >= 0) {
+                    formData.append("removeImages", JSON.stringify(removeList));
+                }
+
                 if (editingMeasurement) {
                     await MasterApi.updateMeasurement(editingMeasurement._id, formData);
                     toast.success(t.updatedSuccess);
@@ -254,7 +260,7 @@ const Measurements = () => {
                 <div>
                     <div className="font-medium text-gray-900">{row.original.name}</div>
                     <div className="text-sm text-gray-500">
-                        {row.original.garmentType?.name || 'No garment type'}
+                        {row.original.garmentType?.name || 'No specialities'}
                     </div>
                 </div>
             ),
@@ -552,6 +558,7 @@ const Measurements = () => {
                                     onBlur={formik.handleBlur}
                                     accept="image/*"
                                     multiple={true}
+                                    setRemoveList={setRemoveList}
                                     error={formik.touched.image && formik.errors.image}
                                     isRequired={true}
                                 />

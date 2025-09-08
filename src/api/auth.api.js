@@ -8,6 +8,7 @@ const AuthApi = {
 
     requestPasswordReset: (payload) => Api.post('auth/request-password-reset', payload),
     changePassword: (payload) => Api.post('auth/reset-password', payload),
+    getAllCustomers: (filter) => Api.post('admin/users',filter),
 };
 
 export default AuthApi;

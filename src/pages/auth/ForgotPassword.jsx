@@ -90,11 +90,7 @@ const ForgotPassword = () => {
           className="hidden lg:flex lg:w-1/2 bg-muted"
         >
           <div
-            className="w-full h-full bg-cover bg-center"
-            style={{
-              backgroundImage: 'url(https://images.unsplash.com/photo-1562157873-818bc0726f68?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80)',
-            }}
-          >
+            className="w-full h-full bg-cover bg-center">
             <div className="h-full w-full bg-gradient-to-r from-background/80 to-transparent flex items-center justify-start">
               <div className="text-left p-16 space-y-6">
                 <motion.div

@@ -31,7 +31,7 @@ const CommonModal = ({
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 "
-            onClick={handleBackdropClick}
+            // onClick={handleBackdropClick}
             style={{margin: '0', padding: '0'}}
         >
             <div className={`bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} mx-4 max-h-[90vh] overflow-hidden`}>

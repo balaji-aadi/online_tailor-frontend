@@ -1,229 +1,553 @@
-import { useState } from 'react';
-import { Users, UserCheck, UserX, Search, Filter, Plus, Eye, Edit, Trash2, MoreHorizontal } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useLanguage } from '@/components/Layout';
+import { useEffect, useState } from 'react';
+import { Eye, Users, UserCheck, UserX, Filter } from 'lucide-react';
+import TableAlpha from '../../components/ui/TableAlpha';
+import CommonModal from '../../components/ui/commonModal';
+import AuthApi from '../../api/auth.api';
+import { toast } from 'react-toastify';
+import { useLanguage } from '../../components/Layout';
+
+const translations = {
+  en: {
+    title: 'User Management',
+    userManagement: 'Manage customers and tailors on your platform',
+    totalUsers: 'Total Users',
+    activeUsers: 'Active Users',
+    inactiveUsers: 'Inactive Users',
+    searchUsers: 'Search users...',
+    filter: 'Filter',
+    allUsers: 'All Users',
+    user: 'User',
+    type: 'Type',
+    status: 'Status',
+    location: 'Location',
+    joinDate: 'Join Date',
+    actions: 'Actions',
+    view: 'View',
+    viewUser: 'View User Details',
+    customer: 'Customer',
+    tailor: 'Tailor',
+    active: 'Active',
+    inactive: 'Inactive',
+    businessName: 'Business Name',
+    ownerName: 'Owner Name',
+    email: 'Email',
+    role: 'Role',
+    contactNumber: 'Contact Number',
+    dob: 'Date of Birth',
+    address: 'Address',
+    gender: 'Gender',
+    male: 'Male',
+    female: 'Female',
+    age: 'Age',
+    allStatus: 'All Status',
+    allRoles: 'All Roles',
+    allGenders: 'All Genders',
+    allCities: 'All Cities',
+    statusFilter: 'Status Filter',
+    roleFilter: 'Role Filter',
+    genderFilter: 'Gender Filter',
+    cityFilter: 'City Filter',
+    basicInfo: 'Basic Information',
+    tailorInfo: 'Tailor Information',
+    specialties: 'Specialties',
+    services: 'Services',
+    homeMeasurement: 'Home Measurement',
+    rushOrders: 'Rush Orders',
+    description: 'Description',
+    whatsapp: 'WhatsApp',
+    experience: 'Experience',
+    approved: 'Approved',
+    pending: 'Pending',
+    rejected: 'Rejected'
+  },
+  ar: {
+    title: 'إدارة المستخدمين',
+    userManagement: 'إدارة العملاء والخياطين على منصتك',
+    totalUsers: 'إجمالي المستخدمين',
+    activeUsers: 'المستخدمين النشطين',
+    inactiveUsers: 'المستخدمين غير النشطين',
+    searchUsers: 'البحث عن المستخدمين...',
+    filter: 'تصفية',
+    allUsers: 'جميع المستخدمين',
+    user: 'المستخدم',
+    type: 'النوع',
+    status: 'الحالة',
+    location: 'الموقع',
+    joinDate: 'تاريخ الانضمام',
+    actions: 'الإجراءات',
+    view: 'عرض',
+    viewUser: 'عرض تفاصيل المستخدم',
+    customer: 'عميل',
+    tailor: 'خياط',
+    active: 'نشط',
+    inactive: 'غير نشط',
+    businessName: 'اسم العمل',
+    ownerName: 'اسم المالك',
+    email: 'البريد الإلكتروني',
+    role: 'الدور',
+    contactNumber: 'رقم الاتصال',
+    dob: 'تاريخ الميلاد',
+    address: 'العنوان',
+    gender: 'الجنس',
+    male: 'ذكر',
+    female: 'أنثى',
+    age: 'العمر',
+    allStatus: 'جميع الحالات',
+    allRoles: 'جميع الأدوار',
+    allGenders: 'جميع الأجناس',
+    allCities: 'جميع المدن',
+    statusFilter: 'تصفية حسب الحالة',
+    roleFilter: 'تصفية حسب الدور',
+    genderFilter: 'تصفية حسب الجنس',
+    cityFilter: 'تصفية حسب المدينة',
+    basicInfo: 'المعلومات الأساسية',
+    tailorInfo: 'معلومات الخياط',
+    specialties: 'التخصصات',
+    services: 'الخدمات',
+    homeMeasurement: 'قياس المنزل',
+    rushOrders: 'طلبات عاجلة',
+    description: 'الوصف',
+    whatsapp: 'واتساب',
+    experience: 'الخبرة',
+    approved: 'تم الموافقة',
+    pending: 'معلق',
+    rejected: 'مرفوض'
+  }
+};
 
 const UserManagement = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0
+  });
   const { language } = useLanguage();
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const users = [
+  const t = translations[language || 'en'];
+
+  const statusOptions = [
+    { value: 'all', label: t.allStatus },
+    { value: 'active', label: t.active },
+    { value: 'inactive', label: t.inactive }
+  ];
+
+  const roleOptions = [
+    { value: 'all', label: t.allRoles },
+    { value: 'customer', label: t.customer },
+    { value: 'tailor', label: t.tailor }
+  ];
+
+  const genderOptions = [
+    { value: 'all', label: t.allGenders },
+    { value: 'male', label: t.male },
+    { value: 'female', label: t.female }
+  ];
+
+  const cityOptions = [
+    { value: 'all', label: t.allCities },
+    { value: 'Dubai', label: 'Dubai' },
+    { value: 'Abu Dhabi', label: 'Abu Dhabi' },
+    { value: 'Sharjah', label: 'Sharjah' },
+    { value: 'Ajman', label: 'Ajman' },
+    { value: 'Al Ain', label: 'Al Ain' }
+  ];
+
+  const [filters, setFilters] = useState({
+    role: 'customer',
+    status: 'all',
+    gender: 'all',
+    city: 'all',
+    search: '',
+    page: '1',
+    limit: '10',
+    sort: 'desc'
+  });
+
+  const getAllUsers = async () => {
+    try {
+      const filterPayload = {
+        role: filters.role !== 'all' ? filters.role : undefined,
+        status: filters.status !== 'all' ? filters.status : undefined,
+        gender: filters.gender !== 'all' ? filters.gender : undefined,
+        city: filters.city !== 'all' ? filters.city : undefined,
+        search: filters.search || undefined,
+        page: filters.page,
+        limit: filters.limit,
+        sort: filters.sort
+      };
+
+      // Remove undefined values from payload
+      Object.keys(filterPayload).forEach(key => {
+        if (filterPayload[key] === undefined) {
+          delete filterPayload[key];
+        }
+      });
+
+      const res = await AuthApi.getAllCustomers(filterPayload);
+      const userData = res.data?.data || [];
+      setUsers(userData);
+
+      // Calculate stats
+      const total = userData.length;
+      const active = userData.filter(user =>
+        user.is_active === true || user.status === 'active' || user.status === 'Approved'
+      ).length;
+      const inactive = userData.filter(user =>
+        user.is_active === false || user.status === 'inactive' || user.status === 'Rejected'
+      ).length;
+
+      setStats({ total, active, inactive });
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || 'Something went wrong');
+    }
+  };
+
+  useEffect(() => {
+    getAllUsers();
+  }, [filters]);
+
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value,
+      page: '1' // Reset to first page when filters change
+    }));
+  };
+
+  const handleSearchChange = (value) => {
+    setFilters(prev => ({
+      ...prev,
+      search: value,
+      page: '1'
+    }));
+  };
+
+  const handleView = (user) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const getStatusBadge = (status, is_active) => {
+    // Determine status based on both status field and is_active field
+    let statusValue = 'inactive';
+
+    if (is_active !== undefined) {
+      statusValue = is_active ? 'active' : 'inactive';
+    } else if (status) {
+      statusValue = status.toLowerCase();
+      if (statusValue === 'approved') statusValue = 'active';
+      if (statusValue === 'rejected') statusValue = 'inactive';
+    }
+
+    const statusConfig = {
+      active: { label: t.active, class: 'bg-green-100 text-green-800' },
+      inactive: { label: t.inactive, class: 'bg-red-100 text-red-800' },
+      pending: { label: t.pending, class: 'bg-yellow-100 text-yellow-800' }
+    };
+
+    const config = statusConfig[statusValue] || statusConfig.inactive;
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.class}`}>{config.label}</span>;
+  };
+
+  const getTypeBadge = (user_role) => {
+    const roleName = user_role?.name || 'customer';
+    const typeConfig = {
+      customer: { label: t.customer, class: 'bg-blue-100 text-blue-800' },
+      tailor: { label: t.tailor, class: 'bg-purple-100 text-purple-800' }
+    };
+
+    const config = typeConfig[roleName] || typeConfig.customer;
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.class}`}>{config.label}</span>;
+  };
+
+  const columnsConfig = [
     {
-      id: 1,
-      name: 'Ahmed Al Mansouri',
-      email: 'ahmed.mansouri@email.com',
-      type: 'customer',
-      status: 'active',
-      location: 'Dubai',
-      joinDate: '2024-01-15',
-      lastActive: '2 hours ago',
-      orders: 12
+      header: t.user,
+      accessorKey: 'name',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">
+            {row.original.name || row.original.businessName || row.original.ownerName || row.original.email}
+          </div>
+          <div className="text-sm text-gray-500">{row.original.email}</div>
+        </div>
+      )
     },
     {
-      id: 2,
-      name: 'Fatima Tailoring',
-      email: 'fatima@fatimatailoring.ae',
-      type: 'tailor',
-      status: 'active',
-      location: 'Abu Dhabi',
-      joinDate: '2023-11-20',
-      lastActive: '1 hour ago',
-      orders: 89
+      header: t.type,
+      accessorKey: 'user_role',
+      cell: ({ row }) => getTypeBadge(row.original.user_role)
     },
     {
-      id: 3,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@email.com', 
-      type: 'customer',
-      status: 'pending',
-      location: 'Sharjah',
-      joinDate: '2024-03-01',
-      lastActive: '1 day ago',
-      orders: 3
+      header: t.status,
+      accessorKey: 'status',
+      cell: ({ row }) => getStatusBadge(row.original.status, row.original.is_active)
+    },
+    {
+      header: t.location,
+      accessorKey: 'city',
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.city?.name || row.original.city || 'N/A'}
+        </span>
+      )
+    },
+    {
+      header: t.joinDate,
+      accessorKey: 'createdAt',
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {new Date(row.original.createdAt).toLocaleDateString()}
+        </span>
+      )
+    },
+    {
+      header: t.actions,
+      accessorKey: 'actions',
+      cell: ({ row }) => (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleView(row.original)}
+            className="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+        </div>
+      )
     }
   ];
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      active: { label: language === 'en' ? 'Active' : 'نشط', class: 'status-active' },
-      pending: { label: language === 'en' ? 'Pending' : 'معلق', class: 'status-pending' },
-      inactive: { label: language === 'en' ? 'Inactive' : 'غير نشط', class: 'status-inactive' }
-    };
-    
-    const config = statusConfig[status];
-    return <Badge className={config.class}>{config.label}</Badge>;
-  };
-
-  const getTypeBadge = (type) => {
-    const typeConfig = {
-      customer: { label: language === 'en' ? 'Customer' : 'عميل', class: 'bg-primary/10 text-primary' },
-      tailor: { label: language === 'en' ? 'Tailor' : 'خياط', class: 'bg-gold/10 text-gold-dark' }
-    };
-    
-    const config = typeConfig[type];
-    return <Badge className={config.class}>{config.label}</Badge>;
-  };
-
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            {language === 'en' ? 'User Management' : 'إدارة المستخدمين'}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {language === 'en' ? 'Manage customers and tailors on your platform' : 'إدارة العملاء والخياطين على منصتك'}
-          </p>
+    <div className={`p-6 bg-gray-50 min-h-screen ${language === 'ar' ? 'dir-rtl' : 'dir-ltr'}`}>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <p className="text-gray-600 mt-1">{t.userManagement}</p>
         </div>
-        <Button className="btn-premium">
-          <Plus className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-          {language === 'en' ? 'Add User' : 'إضافة مستخدم'}
-        </Button>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="card-elevated">
-          <CardContent className="p-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {language === 'en' ? 'Total Users' : 'إجمالي المستخدمين'}
-                </p>
-                <p className="text-3xl font-bold text-foreground">2,847</p>
+                <p className="text-sm font-medium text-gray-600">{t.totalUsers}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Users className="w-6 h-6 text-primary" />
+              <div className="p-3 rounded-xl bg-blue-100">
+                <Users className="w-6 h-6 text-blue-600" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-elevated">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {language === 'en' ? 'Active Users' : 'المستخدمين النشطين'}
-                </p>
-                <p className="text-3xl font-bold text-foreground">2,341</p>
-              </div>
-              <div className="p-3 rounded-xl bg-success/10">
-                <UserCheck className="w-6 h-6 text-success" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-elevated">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {language === 'en' ? 'Pending Approval' : 'في انتظار الموافقة'}
-                </p>
-                <p className="text-3xl font-bold text-foreground">12</p>
-              </div>
-              <div className="p-3 rounded-xl bg-warning/10">
-                <UserX className="w-6 h-6 text-warning" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <Card className="card-elevated">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={language === 'en' ? 'Search users...' : 'البحث عن المستخدمين...'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="hover-lift">
-                <Filter className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                {language === 'en' ? 'Filter' : 'تصفية'}
-              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Users Table */}
-      <Card className="card-elevated">
-        <CardHeader>
-          <CardTitle>{language === 'en' ? 'All Users' : 'جميع المستخدمين'}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{language === 'en' ? 'User' : 'المستخدم'}</TableHead>
-                <TableHead>{language === 'en' ? 'Type' : 'النوع'}</TableHead>
-                <TableHead>{language === 'en' ? 'Status' : 'الحالة'}</TableHead>
-                <TableHead>{language === 'en' ? 'Location' : 'الموقع'}</TableHead>
-                <TableHead>{language === 'en' ? 'Orders' : 'الطلبات'}</TableHead>
-                <TableHead>{language === 'en' ? 'Last Active' : 'آخر نشاط'}</TableHead>
-                <TableHead className="text-right">{language === 'en' ? 'Actions' : 'الإجراءات'}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id} className="hover:bg-secondary/50">
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{user.name}</div>
-                      <div className="text-sm text-muted-foreground">{user.email}</div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{t.activeUsers}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-green-100">
+                <UserCheck className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{t.inactiveUsers}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.inactive}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-red-100">
+                <UserX className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Users Table with Custom Filters */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            {/* Role Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.roleFilter}</label>
+              <select
+                value={filters.role}
+                onChange={(e) => handleFilterChange('role', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-sm cursor-pointer outline-none"
+              >
+                {roleOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.statusFilter}</label>
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-sm cursor-pointer outline-none"
+              >
+                {statusOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Gender Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.genderFilter}</label>
+              <select
+                value={filters.gender}
+                onChange={(e) => handleFilterChange('gender', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-sm cursor-pointer outline-none"
+              >
+                {genderOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* City Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.cityFilter}</label>
+              <select
+                value={filters.city}
+                onChange={(e) => handleFilterChange('city', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-sm cursor-pointer outline-none"
+              >
+                {cityOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <TableAlpha
+            data={users}
+            columnsConfig={columnsConfig}
+            itemsName={t.allUsers}
+            showStatusFilter={false}
+            showLocationFilter={false}
+          />
+        </div>
+
+        {/* View User Modal */}
+        <CommonModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onCancel={handleCloseModal}
+          title={t.viewUser}
+          size="lg"
+        >
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t.basicInfo}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p><span className="font-medium">Name:</span> {selectedUser.name || 'N/A'}</p>
+                    <p><span className="font-medium">{t.email}:</span> {selectedUser.email}</p>
+                    <p><span className="font-medium">{t.contactNumber}:</span> {selectedUser.contactNumber || 'N/A'}</p>
+                    <p><span className="font-medium">{t.role}:</span> {getTypeBadge(selectedUser.user_role)}</p>
+                  </div>
+                  <div>
+                    <p><span className="font-medium">{t.status}:</span> {getStatusBadge(selectedUser.status, selectedUser.is_active)}</p>
+                    <p><span className="font-medium">{t.gender}:</span> {selectedUser.gender === 'male' ? t.male : t.female}</p>
+                    <p><span className="font-medium">{t.age}:</span> {selectedUser.age || 'N/A'}</p>
+                    <p><span className="font-medium">{t.joinDate}:</span> {new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Info */}
+              {selectedUser.address && (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t.address}</h3>
+                  <p className="text-gray-700">{selectedUser.address}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedUser.city?.name || selectedUser.city || 'N/A'}
+                  </p>
+                </div>
+              )}
+
+              {/* Tailor Specific Info */}
+              {selectedUser.user_role?.name === 'tailor' && selectedUser.tailorInfo && (
+                <>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">{t.tailorInfo}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p><span className="font-medium">{t.businessName}:</span> {selectedUser.tailorInfo.businessInfo?.businessName || 'N/A'}</p>
+                        <p><span className="font-medium">{t.ownerName}:</span> {selectedUser.tailorInfo.businessInfo?.ownerName || 'N/A'}</p>
+                        <p><span className="font-medium">{t.whatsapp}:</span> {selectedUser.tailorInfo.businessInfo?.whatsapp || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p><span className="font-medium">{t.experience}:</span> {selectedUser.tailorInfo.professionalInfo?.experience || 'N/A'}</p>
+                        <p><span className="font-medium">{t.gender}:</span> {selectedUser.tailorInfo.professionalInfo?.gender === 'male' ? t.male : t.female}</p>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{getTypeBadge(user.type)}</TableCell>
-                  <TableCell>{getStatusBadge(user.status)}</TableCell>
-                  <TableCell>{user.location}</TableCell>
-                  <TableCell>{user.orders}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{user.lastActive}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="hover-lift">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="mr-2 h-4 w-4" />
-                          {language === 'en' ? 'View' : 'عرض'}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          {language === 'en' ? 'Edit' : 'تحرير'}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {language === 'en' ? 'Delete' : 'حذف'}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                  </div>
+
+                  {/* Specialties */}
+                  {selectedUser.tailorInfo.professionalInfo?.specialties && selectedUser.tailorInfo.professionalInfo.specialties.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">{t.specialties}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedUser.tailorInfo.professionalInfo.specialties.map(spec => (
+                          <span key={spec._id} className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
+                            {spec.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Services */}
+                  {selectedUser.tailorInfo?.services && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">{t.services}</h3>
+                      <div className="space-y-1">
+                        <p><span className="font-medium">{t.homeMeasurement}:</span> {selectedUser.tailorInfo.services.homeMeasurement ? 'Yes' : 'No'}</p>
+                        <p><span className="font-medium">{t.rushOrders}:</span> {selectedUser.tailorInfo.services.rushOrders ? 'Yes' : 'No'}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {selectedUser.tailorInfo?.professionalInfo?.description && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">{t.description}</h3>
+                      <p className="text-gray-700">{selectedUser.tailorInfo.professionalInfo.description}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </CommonModal>
+      </div>
     </div>
   );
 };

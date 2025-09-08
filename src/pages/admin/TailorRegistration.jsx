@@ -255,7 +255,7 @@ const TailorRegistrationForm = ({ onSubmit }) => {
             if (!values.email) errors.email = t('Email is required');
             if (!values.locations.length) errors.locations = t('At least one location is required');
             if (!values.gender) errors.gender = t('Gender preference is required');
-            if (!values.specialties.length) errors.specialties = t('At least one Garment type is required');
+            if (!values.specialties.length) errors.specialties = t('At least one specialties is required');
             if (!values.experience) errors.experience = t('Experience is required');
             if (!values.emiratesIdExpiry) errors.emiratesIdExpiry = t('Emirates ID expiry date is required');
             if (!values.tradeLicense.length) errors.tradeLicense = t('Trade License is required');
@@ -527,7 +527,7 @@ const TailorRegistrationForm = ({ onSubmit }) => {
                                                 />
 
                                                 <InputField
-                                                    label={t("Garment types")}
+                                                    label={t("Specialties")}
                                                     name="specialties"
                                                     type="select"
                                                     value={formik.values.specialties}
@@ -540,7 +540,7 @@ const TailorRegistrationForm = ({ onSubmit }) => {
                                                     }
                                                     isRequired
                                                     isMulti={true}
-                                                    placeholder={t("Select Garment types")}
+                                                    placeholder={t("Select Specialties")}
                                                     dir={isRTL ? "rtl" : "ltr"}
                                                 />
 

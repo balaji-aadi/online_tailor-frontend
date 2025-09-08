@@ -24,8 +24,7 @@ const translations = {
     updatedSuccess: 'Service updated successfully',
     deletedSuccess: 'Service deleted successfully',
     nameRequired: 'Service name is required',
-    nameMin: 'Service name must be at least 2 characters',
-    nameMax: 'Service name must be less than 50 characters',
+    nameInvalid: 'Service name must be one of: Readymade, Stitching, or Alteration',
     name: 'Name',
     actions: 'Actions',
     services: 'services',
@@ -45,8 +44,7 @@ const translations = {
     updatedSuccess: 'تم تحديث الخدمة بنجاح',
     deletedSuccess: 'تم حذف الخدمة بنجاح',
     nameRequired: 'اسم الخدمة مطلوب',
-    nameMin: 'يجب أن يكون اسم الخدمة على الأقل حرفين',
-    nameMax: 'يجب أن يكون اسم الخدمة أقل من 50 حرفًا',
+    nameInvalid: 'يجب أن يكون اسم الخدمة أحد: Readymade أو Stitching أو Alteration',
     name: 'الاسم',
     actions: 'الإجراءات',
     services: 'الخدمات',
@@ -63,21 +61,19 @@ const Category = () => {
 
   const t = translations[language || 'en'];
 
+  const allowedServiceNames = ['readymade', 'stitching', 'alteration'];
+  const serviceOptions = allowedServiceNames.map(name => ({
+    value: name,
+    label: name.charAt(0).toUpperCase() + name.slice(1)
+  }));
+
   const validationSchema = Yup.object({
     name: Yup.string()
       .required(t.nameRequired)
-      .min(2, t.nameMin)
-      .max(50, t.nameMax),
-    image: Yup.mixed()
-      .test('fileRequired', 'Image is required', (value) => {
-        if (!editingService) return value && value.length > 0;
-        return true; // Image is optional when editing
-      })
-      .test('fileType', 'Unsupported file type', (value) => {
-        if (!value || value.length === 0) return true;
-        const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        return acceptedTypes.includes(value[0]?.type);
-      })
+      .oneOf(allowedServiceNames, t.nameInvalid),
+    image: Yup.array()
+      .min(1, t.imageMin)
+      .required(t.imageRequired),
   });
 
   const getAllServices = async () => {
@@ -103,8 +99,8 @@ const Category = () => {
     onSubmit: async (values) => {
       try {
         const formData = new FormData();
-        formData.append('name', values.name);
-        if (values.image && values.image.length > 0) {
+        formData.append('name', values.name.toLowerCase());
+        if (values.image && values.image.length > 0 && typeof values.image[0] !== 'string') {
           formData.append('image', values.image[0]);
         }
 
@@ -158,12 +154,12 @@ const Category = () => {
           >
             <Edit className="w-4 h-4" />
           </button>
-          <button
+          {/* <button
             onClick={() => handleDelete(row.original._id)}
             className="p-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
           >
             <Trash2 className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
       )
     }
@@ -173,7 +169,7 @@ const Category = () => {
     setEditingService(service);
     formik.setValues({
       name: service.name,
-      image: service.image ? [service.image] : []
+      image: [service.image],
     });
     setIsModalOpen(true);
   };
@@ -237,13 +233,14 @@ const Category = () => {
             <InputField
               label={t.serviceName}
               name="name"
-              type="text"
+              type="select"
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder={t.enterServiceName}
               error={formik.touched.name && formik.errors.name}
               isRequired={true}
+              options={serviceOptions}
               labelClassName={language === 'ar' ? 'text-right' : ''}
             />
             <FileInputField

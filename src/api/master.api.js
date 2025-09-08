@@ -30,7 +30,7 @@ const MasterApi = {
     updateTax: (id, payload) => Api.put(`master/update-tax/${id}`, payload),
     getTaxes: () => Api.post('master/get-all-taxes'),
     deleteTax: (id) => Api.delete(`master/delete-tax/${id}`),
-    getActiveTax: () => Api.post('master/get-active-tax'),
+    getActiveTax: () => Api.get('master/get-active-tax'),
 
 
     // terms policy
@@ -38,6 +38,12 @@ const MasterApi = {
     updateTermsPolicy: (id, payload) => Api.put(`master/update-terms-policy/${id}`, payload),
     getTermsPolicies: (payload) => Api.post('master/get-terms-policy', payload),
     getAllTermsPolicies: () => Api.post('master/get-all-terms-policy'),
+
+    // color
+    createColor: (payload) => Api.post('master/create-color', payload),
+    updateColor: (id, payload) => Api.put(`master/update-color/${id}`, payload),
+    getColors: () => Api.post('master/get-all-colors'),
+    deleteColor: (id) => Api.delete(`master/delete-color/${id}`),
 
 };
 

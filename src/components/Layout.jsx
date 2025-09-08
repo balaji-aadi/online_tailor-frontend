@@ -29,6 +29,7 @@ const Layout = () => {
   const [language, setLanguage] = useState('en');
   const [direction, setDirection] = useState('ltr');
   const user = useSelector((state) => state.store.currentUser);
+console.log(user)
   const dispatch = useDispatch();
   const {handleLoading} = useLoading();
 
@@ -99,7 +100,7 @@ const Layout = () => {
                   variant="outline"
                   size="sm"
                   onClick={toggleLanguage}
-                  className="hover-lift"
+                  className=""
                 >
                   <Globe className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                   {t.language}
@@ -108,21 +109,21 @@ const Layout = () => {
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="hover-lift">
-                      <User className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                      Admin User
+                    <Button variant="outline" size="sm" className="">
+                      <User className="w-4 h-4 rtl:mr-0 rtl:ml-1" />
+                      {user?.user_role?.name === "admin" ? user?.first_name : user?.ownerName}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'} className="w-56">
-                    <DropdownMenuItem>
+                    {/* <DropdownMenuItem>
                       <User className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
                       <span>{t.profile}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuItem>
                       <Settings className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
                       <span>{t.settings}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuSeparator /> */}
                     <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
                       <span>{t.logout}</span>

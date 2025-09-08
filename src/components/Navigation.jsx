@@ -25,6 +25,7 @@ import {
   Target,
   Ruler,
   BadgePercent,
+  PaintBucket
 } from 'lucide-react';
 import { useLanguage } from './Layout';
 
@@ -120,7 +121,7 @@ const Navigation = ({ type = 'admin' }) => {
           icon: Shirt,
         },
         {
-          title: language === 'en' ? 'Garment Types' : 'التخصصات',
+          title: language === 'en' ? 'Specialties' : 'التخصصات',
           href: '/admin/master/specialties',
           icon: Target,
         },
@@ -138,6 +139,11 @@ const Navigation = ({ type = 'admin' }) => {
           title: language === 'en' ? 'Tax' : 'الضرائب',
           href: '/admin/master/tax',
           icon: BadgePercent,
+        },
+        {
+          title: language === 'en' ? 'Color' : 'اللون',
+          href: '/admin/master/color',
+          icon: PaintBucket,
         },
       ],
     },
@@ -164,7 +170,7 @@ const Navigation = ({ type = 'admin' }) => {
       title: language === 'en' ? 'Profile' : 'الملف الشخصي',
       href: '/tailor/profile',
       icon: Users,
-    },
+    }, 
     {
       title: language === 'en' ? 'Orders' : 'الطلبات',
       href: '/tailor/orders',
@@ -175,16 +181,16 @@ const Navigation = ({ type = 'admin' }) => {
       href: '/tailor/services',
       icon: Scissors,
     },
-    {
-      title: language === 'en' ? 'Portfolio' : 'معرض الأعمال',
-      href: '/tailor/portfolio',
-      icon: Star,
-    },
-    {
-      title: language === 'en' ? 'Calendar' : 'التقويم',
-      href: '/tailor/calendar',
-      icon: Calendar,
-    },
+    // {
+    //   title: language === 'en' ? 'Portfolio' : 'معرض الأعمال',
+    //   href: '/tailor/portfolio',
+    //   icon: Star,
+    // },
+    // {
+    //   title: language === 'en' ? 'Calendar' : 'التقويم',
+    //   href: '/tailor/calendar',
+    //   icon: Calendar,
+    // },
     {
       title: language === 'en' ? 'Analytics' : 'التحليلات',
       href: '/tailor/analytics',
@@ -211,7 +217,7 @@ const Navigation = ({ type = 'admin' }) => {
               onClick={() => toggleExpanded(item.key || item.href)}
               className={`flex items-center w-full  py-3 rounded-xl transition-all duration-300 gap-4 group text-muted-foreground hover:text-foreground hover:bg-secondary/50 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
               style={{ paddingLeft: level > 0 ? `${level * 20 + 16}px` : '16px' }}
-              title={isCollapsed ? item.title : undefined} // Tooltip for collapsed state
+              title={isCollapsed ? item.title : undefined}
             >
               {item.icon && (
                 <item.icon
@@ -250,7 +256,7 @@ const Navigation = ({ type = 'admin' }) => {
               } ${direction === 'rtl' ? 'flex-row-reverse' : ''}`
             }
             style={{ paddingLeft: level > 0 ? `${level * 20 + 16}px` : '16px' }}
-            title={isCollapsed ? item.title : undefined} // Tooltip for collapsed state
+            title={isCollapsed ? item.title : undefined}
           >
             {item.icon && (
               <item.icon
