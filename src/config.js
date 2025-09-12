@@ -5,7 +5,7 @@ export const user_role = {
     customer: 4,
 };
 
-const localUrl = "http://192.168.1.9:5008";
+const localUrl = "http://192.168.1.7:5008";
 const liveUrl = "https://tailor.nablean.com";
 const deliveryLocalUrl = "http://192.168.29.30:5001";
 const deliveryLiveUrl = "http://192.168.29.30:5001";
@@ -17,3 +17,4 @@ export const server = isLive ? `${liveUrl}/api/v1/` : `${localUrl}/api/v1/`;
 export const deliveryServer = isLive
     ? `${deliveryLiveUrl}/api/v1/`
     : `${deliveryLocalUrl}/api/v1/`;
+export const socketServer = isLive ? liveUrl : localUrl;

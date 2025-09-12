@@ -33,7 +33,8 @@ const TableAlpha = ({
     ],
     showStatusFilter,
     showLocationFilter,
-    itemsName
+    itemsName,
+    additionalFilters
 }) => {
     const [sorting, setSorting] = useState([]);
     const [filtering, setFiltering] = useState('');
@@ -129,6 +130,9 @@ const TableAlpha = ({
                             ))}
                         </select>
                     )}
+
+                    {/* Additional Filters */}
+                    {additionalFilters && additionalFilters}
                 </div>
 
                 <div className="text-sm text-gray-600">

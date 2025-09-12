@@ -10,6 +10,7 @@ import { useLoading } from '../../loader/LoaderContext';
 import { toast } from 'react-toastify';
 import TailorApi from '../../api/tailor.api';
 import { useLanguage } from '../../components/Layout';
+import MasterApi from '../../api/master.api';
 
 const translations = {
   en: {
@@ -159,6 +160,8 @@ const TailorVerification = () => {
   const [expandedSpecialties, setExpandedSpecialties] = useState({});
   const [documentPage, setDocumentPage] = useState({});
   const [activeTab, setActiveTab] = useState('all');
+  const [specialtiesList, setSpecialtiesList] = useState([]);
+
 
   const t = translations[language || 'en'];
 
@@ -207,6 +210,27 @@ const TailorVerification = () => {
       socialMedia: apiData.tailorInfo?.additionalInfo?.socialMedia || {}
     };
   };
+
+  useEffect(() => {
+    const fetchSpecialties = async () => {
+      if (selectedTailor?.specialties) {
+        try {
+          const res = await MasterApi.getSpecialties();
+          const specialities = res.data?.data;
+          const matchedSpecialties = specialities.filter(spec =>
+            selectedTailor.specialties.includes(spec._id)
+          );
+          const specNames = matchedSpecialties.map(spec => spec.name);
+          setSpecialtiesList(specNames);
+        } catch (err) {
+          console.log(err);
+          setSpecialtiesList([]);
+        }
+      }
+    };
+
+    fetchSpecialties();
+  }, [selectedTailor?.specialties]);
 
   const fetchTailors = async () => {
     try {
@@ -274,7 +298,7 @@ const TailorVerification = () => {
     } catch (error) {
       console.error('Error approving tailor:', error);
       toast.error(t?.approveError);
-    } 
+    }
   };
 
   const handleActivateTailor = async (tailor) => {
@@ -494,16 +518,16 @@ const TailorVerification = () => {
         </div>
       ),
     },
-    {
-      accessorKey: 'specialties',
-      header: t?.specialties,
-      cell: ({ row }) => (
-        <SpecialtiesDisplay
-          specialties={row.original.specialties}
-          tailorId={row.original.id}
-        />
-      ),
-    },
+    // {
+    //   accessorKey: 'specialties',
+    //   header: t?.specialties,
+    //   cell: ({ row }) => (
+    //     <SpecialtiesDisplay
+    //       specialties={row.original.specialties}
+    //       tailorId={row.original.id}
+    //     />
+    //   ),
+    // },
     {
       accessorKey: 'experience',
       header: t?.experience,
@@ -575,7 +599,7 @@ const TailorVerification = () => {
         </div>
         <button
           onClick={handleAddTailor}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
           <span>{t?.addTailor}</span>
@@ -766,17 +790,9 @@ const TailorVerification = () => {
                 {t?.specialties}
               </label>
               <div className="flex flex-wrap gap-2">
-                {selectedTailor.specialties?.map((specialty, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full"
-                  >
-                    {specialty}
-                  </span>
-                ))}
-                {selectedTailor.specialties?.length === 0 && (
-                  <span className="text-gray-500">{t?.noSpecialties}</span>
-                )}
+                <span className="text-gray-500">
+                  {specialtiesList.length > 0 ? specialtiesList.join(', ') : 'No specialties listed'}
+                </span>
               </div>
             </div>
 

@@ -1,9 +1,8 @@
 import Api from '../axios.js';
 
 const OrderApi = {
-    getAllOrders: () => Api.post(`customer/all-orders`),
-    // getOrderById: (id) => Api.get(`order/${id}`),
-    // updateOrderStatus: (id, payload) => Api.put(`order/update-status/${id}`, payload),
+    getAllOrders: () => Api.post(`tailor/orders`),
+    confirmOrder: (payload) => Api.post(`tailor/confirm-order`,payload)
 };
 
 export default OrderApi;

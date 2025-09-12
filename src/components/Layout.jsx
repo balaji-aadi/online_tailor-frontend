@@ -1,20 +1,12 @@
-import  { useState, createContext, useContext } from 'react';
-import { Link, Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { Globe, User, Settings, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useState, createContext, useContext } from 'react';
+import { Link, Outlet } from 'react-router-dom';
+import { Globe, User, LogOut } from 'lucide-react';
+import NotificationBell from './Notification/NotificationBell';
 import logo from '../../public/Assests/khyate_logo.png'
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/slices/storeSlice';
-import { useLoading } from '../loader/LoaderContext';
 
-// Language Context
+
 const LanguageContext = createContext();
 
 export const useLanguage = () => {
@@ -28,19 +20,15 @@ export const useLanguage = () => {
 const Layout = () => {
   const [language, setLanguage] = useState('en');
   const [direction, setDirection] = useState('ltr');
-  const user = useSelector((state) => state.store.currentUser);
-console.log(user)
   const dispatch = useDispatch();
-  const {handleLoading} = useLoading();
+  const user = useSelector((state) => state.store.currentUser);
 
   const handleLogout = () => {
-    handleLoading(true);
     try {
       dispatch(logout());
     } catch (err) {
       console.log(err);
     }
-    handleLoading(false);
   };
 
   const toggleLanguage = () => {
@@ -95,50 +83,45 @@ console.log(user)
 
               {/* Right Side Actions */}
               <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                {/* Notification Bell */}
+                <NotificationBell />
+
                 {/* Language Toggle */}
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={toggleLanguage}
-                  className=""
+                  className="flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
                   <Globe className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                   {t.language}
-                </Button>
+                </button>
 
                 {/* User Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="">
-                      <User className="w-4 h-4 rtl:mr-0 rtl:ml-1" />
-                      {user?.user_role?.name === "admin" ? user?.first_name : user?.ownerName}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'} className="w-56">
-                    {/* <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
-                      <span>{t.profile}</span>
-                    </DropdownMenuItem> */}
-                    {/* <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
-                      <span>{t.settings}</span>
-                    </DropdownMenuItem> */}
-                    {/* <DropdownMenuSeparator /> */}
-                    <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
+                <div className="relative group">
+                  <button className="flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    <User className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                    {user?.user_role?.name === "admin" ? user?.first_name : user?.ownerName}
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                    >
                       <LogOut className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
                       <span>{t.logout}</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-      <main className="flex-1">
-        <Outlet />
-      </main>
+        <main className="flex-1">
+          <Outlet />
+        </main>
       </div>
     </LanguageContext.Provider>
   );

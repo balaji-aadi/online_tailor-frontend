@@ -11,6 +11,8 @@ import { Provider } from "react-redux";
 import { persistor, store } from "./store/store.js";
 import { ToastContainer, Bounce } from "react-toastify";
 import { PersistGate } from "redux-persist/integration/react";
+import { NotificationProvider } from "./components/Notification/NotificationContext.jsx";
+import SocketProvider from "./pages/Chat/SocketProvider.jsx";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard.jsx";
@@ -27,7 +29,7 @@ import Measurements from "./pages/admin/Masters/Measurements.jsx";
 import Category from "./pages/admin/Masters/Category.jsx";
 import Tax from "./pages/admin/Masters/Tax.jsx";
 import Color from "./pages/admin/Masters/Color.jsx";
-import TermsConditions from './pages/admin/TermsConditions.jsx';
+import TermsConditions from "./pages/admin/TermsConditions.jsx";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Tailor Pages
@@ -39,7 +41,7 @@ import Portfolio from "./pages/tailor/Portfolio.jsx";
 import Calendar from "./pages/tailor/Calendar.jsx";
 import TailorAnalytics from "./pages/tailor/Analytics.jsx";
 import Messages from "./pages/tailor/Messages.jsx";
-import Size from './pages/tailor/Master/Size.jsx'
+import Size from "./pages/tailor/Master/Size.jsx";
 
 // Portal Layouts
 import AdminPortal from "./pages/admin/AdminPortal.jsx";
@@ -166,9 +168,13 @@ const App = () => (
           <BrowserRouter>
             <LoaderProvider>
               <Loader />
-              <AuthProvider>
-                <AppRoutes />
-              </AuthProvider>
+                <NotificationProvider>
+              <SocketProvider>
+                  <AuthProvider>
+                    <AppRoutes />
+                  </AuthProvider>
+              </SocketProvider>
+                </NotificationProvider>
             </LoaderProvider>
           </BrowserRouter>
         </TooltipProvider>

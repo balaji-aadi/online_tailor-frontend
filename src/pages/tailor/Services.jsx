@@ -5,7 +5,7 @@ import CommonModal from '../../components/ui/commonModal';
 import InputField from '../../components/ui/InputField';
 import { FileInputField } from '../../components/ui/ImageInputField';
 import { toast } from 'react-toastify';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import ImageCarousel from '../../components/ui/ImageCarousel';
@@ -168,6 +168,7 @@ const Services = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState({ services: 1, readymade: 1 });
   const [currentColor, setCurrentColor] = useState('#ffffff');
+  const [colors, setColors] = useState([]);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hexInput, setHexInput] = useState('');
   const itemsPerPage = 12;
@@ -193,13 +194,14 @@ const Services = () => {
 
   const loadMasterData = async () => {
     try {
-      const [fabricsRes, categoriesRes, measurementsRes, specialtiesRes, taxesRes, activeTaxRes] = await Promise.all([
+      const [fabricsRes, categoriesRes, measurementsRes, specialtiesRes, taxesRes, activeTaxRes, colorsRes] = await Promise.all([
         MasterApi.getFabrics(),
         MasterApi.getCategories(),
         MasterApi.getMeasurements(),
         MasterApi.getSpecialties(),
         MasterApi.getTaxes(),
         MasterApi.getActiveTax(),
+        MasterApi.getColors(),
       ]);
       setFabrics(fabricsRes.data?.data || []);
       setCategories(categoriesRes.data?.data || []);
@@ -207,6 +209,7 @@ const Services = () => {
       setSpecialties(specialtiesRes.data?.data || []);
       setTaxes(taxesRes.data?.data || []);
       setActiveTax(activeTaxRes.data?.data || null);
+      setColors(colorsRes.data?.data || []);
     } catch (error) {
       console.error('Error loading master data:', error);
       toast.error(t.failedToLoad);
@@ -232,6 +235,12 @@ const Services = () => {
       toast.error(t.failedToLoad);
     }
   };
+
+  const colorOptions = colors.map((color) => ({
+    value: color._id,
+    label: color.name,
+    color: color.value
+  }));
 
   // Stitching Form
   const stitchingFormik = useFormik({
@@ -279,10 +288,10 @@ const Services = () => {
           }
         });
         // formData.append('isAlterationService', false);
-        if(editingItem && removeList.length >= 0){
+        if (editingItem && removeList.length >= 0) {
           formData.append("removeImages", JSON.stringify(removeList));
         }
-        
+
 
         if (editingItem) {
           await TailorServiceApi.updateService(editingItem._id, formData);
@@ -738,7 +747,7 @@ const Services = () => {
         value={stitchingFormik.values.images}
         onChange={(files) => handleImageChange(files, stitchingFormik)}
         accept="image/*"
-        setRemoveList= {setRemoveList}
+        setRemoveList={setRemoveList}
         multiple
       />
       <div className="flex justify-end space-x-4">
@@ -876,6 +885,16 @@ const Services = () => {
       readymadeFormik.setFieldValue('colors', newColors);
     };
 
+    const handleColorSelect = (colorId) => {
+      const currentColors = readymadeFormik.values.colors || [];
+
+      if (currentColors.includes(colorId)) {
+        readymadeFormik.setFieldValue('colors', currentColors.filter(id => id !== colorId));
+      } else {
+        readymadeFormik.setFieldValue('colors', [...currentColors, colorId]);
+      }
+    };
+
     return (
       <form onSubmit={readymadeFormik.handleSubmit} className="space-y-6 p-4 bg-background rounded-lg shadow-elegant">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -975,7 +994,6 @@ const Services = () => {
           />
         </div>
 
-
         <div className="space-y-4">
           <label className="block text-sm font-medium text-foreground mb-2">{t.colors}</label>
 
@@ -1008,19 +1026,6 @@ const Services = () => {
                           style={{ backgroundColor: hexInput || currentColor }}
                         />
                       </div>
-                      <div className="mt-3 flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">{t.hexCode}:</span>
-                        <span className="text-sm font-medium" style={{ color: hexInput || currentColor }}>
-                          {hexInput || currentColor}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleAddColor}
-                        className="w-full mt-3 p-2 bg-primary text-primary-foreground rounded-md hover:bg-primary-hover text-sm"
-                      >
-                        {t.addColor}
-                      </button>
                     </div>
                   )}
                 </div>
@@ -1065,63 +1070,52 @@ const Services = () => {
               </div>
             </div>
 
-            {/* Color Preview Section */}
-            <div className="space-y-4 h-[20vh] overflow-auto pr-4">
-              <h4 className="text-sm font-medium text-foreground">{t.preview}</h4>
-              <div className="grid grid-cols-2 gap-4" style={{marginTop: '0'}}>
-                {readymadeFormik.values.colors.length > 0 ? (
-                  readymadeFormik.values.colors.map((color, index) => (
-                    <div key={index} className="text-center">
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Available Colors
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Click on colors to select/deselect them for your profile
+              </p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {colors.map((color) => {
+                  const isSelected = readymadeFormik.values.colors.includes(color._id);
+
+                  return (
+                    <div
+                      key={color._id}
+                      className={`relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${isSelected
+                        ? 'ring-2 ring-primary ring-offset-2'
+                        : 'hover:shadow-md'
+                        }`}
+                      onClick={() => handleColorSelect(color.value)}
+                      title={color.name}
+                    >
                       <div
-                        className="w-full h-20 rounded-md border border-input mb-2"
-                        style={{ backgroundColor: color }}
+                        className="w-full h-16 rounded-md mb-2"
+                        style={{ backgroundColor: color.value }}
                       />
-                      <span className="text-xs text-muted-foreground block truncate">{color}</span>
+                      <div className="text-center">
+                        <p className="text-sm font-medium truncate">{color.name}</p>
+                        <p className="text-xs text-gray-500">{color.value}</p>
+                      </div>
+                      {isSelected && (
+                        <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-1">
+                          <div className="w-4 h-4 flex items-center justify-center">
+                            ✓
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <div className="col-span-2 text-center py-8 text-muted-foreground">
-                    <div className="w-12 h-12 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
-                      <Palette size={24} />
-                    </div>
-                    <p className="text-sm">No colors added yet</p>
-                    <p className="text-xs">Add colors to see previews</p>
-                  </div>
-                )}
+                  );
+                })}
               </div>
 
-              {/* Combined Preview */}
-              {readymadeFormik.values.colors.length > 1 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-foreground mb-2">Combined Preview</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Horizontal stripes */}
-                    <div className="h-12 rounded-md border border-input overflow-hidden">
-                      {readymadeFormik.values.colors.map((color, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            backgroundColor: color,
-                            height: `${100 / readymadeFormik.values.colors.length}%`
-                          }}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Vertical stripes */}
-                    <div className="h-12 rounded-md border border-input overflow-hidden flex">
-                      {readymadeFormik.values.colors.map((color, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            backgroundColor: color,
-                            width: `${100 / readymadeFormik.values.colors.length}%`
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              {colors.length === 0 && (
+                <p className="text-gray-500 text-center py-4">
+                  No colors available
+                </p>
               )}
             </div>
           </div>
@@ -1380,7 +1374,7 @@ const Services = () => {
         ))}
       </div>
 
-      
+
 
       {activeTab === 'readymade' ? renderReadymadeItems() : renderServices()}
 

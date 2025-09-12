@@ -84,11 +84,11 @@ const Navigation = ({ type = 'admin' }) => {
       href: '/admin/users',
       icon: Users,
     },
-    {
-      title: language === 'en' ? 'Analytics' : 'التحليلات',
-      href: '/admin/analytics',
-      icon: BarChart3,
-    },
+    // {
+    //   title: language === 'en' ? 'Analytics' : 'التحليلات',
+    //   href: '/admin/analytics',
+    //   icon: BarChart3,
+    // },
     {
       title: language === 'en' ? 'Tailor Verification' : 'تحقق من الخياطين',
       href: '/admin/verification',
@@ -104,11 +104,11 @@ const Navigation = ({ type = 'admin' }) => {
       href: '/admin/disputes',
       icon: MessageSquare,
     },
-    {
-      title: language === 'en' ? 'Reports' : 'التقارير',
-      href: '/admin/reports',
-      icon: TrendingUp,
-    },
+    // {
+    //   title: language === 'en' ? 'Reports' : 'التقارير',
+    //   href: '/admin/reports',
+    //   icon: TrendingUp,
+    // },
     {
       key: 'masters',
       title: language === 'en' ? 'Masters' : 'البيانات الرئيسية',
@@ -152,11 +152,11 @@ const Navigation = ({ type = 'admin' }) => {
       href: '/admin/terms-and-conditions',
       icon: FileText,
     },
-    {
-      title: language === 'en' ? 'Settings' : 'الإعدادات',
-      href: '/admin/settings',
-      icon: Settings,
-    },
+    // {
+    //   title: language === 'en' ? 'Settings' : 'الإعدادات',
+    //   href: '/admin/settings',
+    //   icon: Settings,
+    // },
   ];
 
   const tailorNavItems = [
@@ -182,6 +182,11 @@ const Navigation = ({ type = 'admin' }) => {
       icon: Scissors,
     },
     // {
+    //   title: language === 'en' ? 'Disputes' : 'النزاعات',
+    //   href: '/admin/disputes',
+    //   icon: MessageSquare,
+    // },
+    // {
     //   title: language === 'en' ? 'Portfolio' : 'معرض الأعمال',
     //   href: '/tailor/portfolio',
     //   icon: Star,
@@ -191,16 +196,16 @@ const Navigation = ({ type = 'admin' }) => {
     //   href: '/tailor/calendar',
     //   icon: Calendar,
     // },
-    {
-      title: language === 'en' ? 'Analytics' : 'التحليلات',
-      href: '/tailor/analytics',
-      icon: BarChart3,
-    },
-    {
-      title: language === 'en' ? 'Messages' : 'الرسائل',
-      href: '/tailor/messages',
-      icon: MessageSquare,
-    },
+    // {
+    //   title: language === 'en' ? 'Analytics' : 'التحليلات',
+    //   href: '/tailor/analytics',
+    //   icon: BarChart3,
+    // },
+    // {
+    //   title: language === 'en' ? 'Messages' : 'الرسائل',
+    //   href: '/tailor/messages',
+    //   icon: MessageSquare,
+    // },
   ];
 
   const navItems = type === 'admin' ? adminNavItems : tailorNavItems;

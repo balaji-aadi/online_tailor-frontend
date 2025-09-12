@@ -421,25 +421,50 @@ const TailorProfile = () => {
         <div className="lg:col-span-1 space-y-6">
           <Card className="card-premium">
             <CardContent className="p-6 text-center">
-              <div className="relative inline-block">
-                <div className="w-32 h-32 bg-gradient-primary rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+              <div className="relative inline-block group">
+                <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden shadow-md transition-transform duration-300  ">
                   {formik.values.profileImage.length > 0 || profileImageFile ? (
                     <img
-                      src={profileImageFile ? URL.createObjectURL(profileImageFile) :
-                        (typeof formik.values.profileImage[0] === 'string' ? formik.values.profileImage[0] :
-                          (formik.values.profileImage[0] instanceof File ? URL.createObjectURL(formik.values.profileImage[0]) : ''))}
+                      src={
+                        profileImageFile
+                          ? URL.createObjectURL(profileImageFile)
+                          : typeof formik.values.profileImage[0] === "string"
+                            ? formik.values.profileImage[0]
+                            : formik.values.profileImage[0] instanceof File
+                              ? URL.createObjectURL(formik.values.profileImage[0])
+                              : ""
+                      }
                       alt="Profile"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-95"
                     />
                   ) : (
-                    <User className="w-16 h-16 text-primary-foreground" />
+                    <User className="w-16 h-16 text-gray-500 transition-opacity duration-300 group-hover:opacity-80" />
                   )}
                 </div>
+
+                {/* Upload button on hover */}
                 {isEditing && (
-                  <div className="absolute bottom-0 right-0 cursor-pointer rounded-full p-1 bg-white shadow-md">
-                    <label htmlFor="profile-image-upload" className="cursor-pointer">
-                      <Camera className="w-5 h-5 text-black" />
-                    </label>
+                  <label
+                    htmlFor="profile-image-upload"
+                    className="absolute inset-0 flex items-center justify-center bg-gray-800/50 text-white text-sm font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer hover:bg-gray-800/40"
+                  >
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M7 16V8m0 0L3 12m4-4l4 4m6 0a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                      Upload
+                    </span>
                     <input
                       id="profile-image-upload"
                       type="file"
@@ -447,17 +472,20 @@ const TailorProfile = () => {
                       className="hidden"
                       onChange={handleProfileImageChange}
                     />
-                  </div>
+                  </label>
                 )}
+
+                {/* Remove button */}
                 {isEditing && (formik.values.profileImage.length > 0 || profileImageFile) && (
                   <button
                     onClick={removeProfileImageHandler}
-                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1.5 shadow-sm hover:bg-red-600 transition-colors duration-200"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3 h-3" />
                   </button>
                 )}
               </div>
+
               <h2 className="text-2xl font-bold text-foreground mb-2">{formik.values.businessName || 'Online Tailor'}</h2>
               <p className="text-muted-foreground mb-4">
                 {t('Traditional & Modern Tailoring')}
@@ -472,7 +500,6 @@ const TailorProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Contact Display */}
           <Card className="card-elevated">
             <CardHeader>
               <CardTitle>{t('Contact Information')}</CardTitle>

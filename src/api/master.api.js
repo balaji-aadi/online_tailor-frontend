@@ -42,7 +42,7 @@ const MasterApi = {
     // color
     createColor: (payload) => Api.post('master/create-color', payload),
     updateColor: (id, payload) => Api.put(`master/update-color/${id}`, payload),
-    getColors: () => Api.post('master/get-all-colors'),
+    getColors: () => Api.get('master/get-all-colors'),
     deleteColor: (id) => Api.delete(`master/delete-color/${id}`),
 
 };
