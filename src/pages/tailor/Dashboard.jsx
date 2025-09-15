@@ -136,15 +136,7 @@ const TailorDashboard = () => {
             {language === 'en' ? "Here's what's happening with your tailoring business today." : 'إليك ما يحدث مع أعمال الخياطة اليوم.'}
           </p>
         </div>
-        <div className="flex space-x-3 rtl:space-x-reverse">
-          <Button variant="outline" className="hover-lift">
-            <CalendarIcon className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-            {language === 'en' ? 'Schedule' : 'الجدولة'}
-          </Button>
-          <Button className="btn-premium">
-            {language === 'en' ? 'New Order' : 'طلب جديد'}
-          </Button>
-        </div>
+
       </div>
 
       {/* Stats Grid */}
@@ -215,14 +207,11 @@ const TailorDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Today's Schedule */}
+        {/* Today's Orders */}
         <Card className="card-elevated">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between">
-              <span>{language === 'en' ? "Today's Schedule" : 'جدول اليوم'}</span>
-              <Button variant="outline" size="sm" className="hover-lift">
-                {language === 'en' ? 'Full Calendar' : 'التقويم الكامل'}
-              </Button>
+              <span>{language === 'en' ? "Today's Orders" : 'جدول اليوم'}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -259,7 +248,7 @@ const TailorDashboard = () => {
           <CardTitle>{language === 'en' ? 'Quick Actions' : 'الإجراءات السريعة'}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
             <Button variant="outline" className="h-20 flex-col hover-lift">
               <ShoppingBag className="w-6 h-6 mb-2" />
               <span className="text-sm">{language === 'en' ? 'New Order' : 'طلب جديد'}</span>
@@ -267,10 +256,6 @@ const TailorDashboard = () => {
             <Button variant="outline" className="h-20 flex-col hover-lift">
               <User className="w-6 h-6 mb-2" />
               <span className="text-sm">{language === 'en' ? 'Customer List' : 'قائمة العملاء'}</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col hover-lift">
-              <CalendarIcon className="w-6 h-6 mb-2" />
-              <span className="text-sm">{language === 'en' ? 'Schedule' : 'الجدولة'}</span>
             </Button>
             <Button variant="outline" className="h-20 flex-col hover-lift">
               <Star className="w-6 h-6 mb-2" />

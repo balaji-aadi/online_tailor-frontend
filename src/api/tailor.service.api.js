@@ -7,7 +7,7 @@ const TailorServiceApi = {
     getServiceById: (id) => Api.get(`/tailor/get-service/${id}`),
     deleteService: (id) => Api.delete(`/tailor/delete-service/${id}`),
     getAllServicesByTailorId: (tailorId) => Api.post(`/tailor/get-all-services/${tailorId}`),
-    getAllServices: () => Api.post(`/tailor/get-all-services`),
+    getAllServices: (payload) => Api.post(`/tailor/get-all-services`,payload),
 
     // readymade apis
     createReadymadeCloth: (payload) => Api.post(`/tailor/create-readymade-cloth`, payload),

@@ -7,7 +7,7 @@ import Layout from "./components/Layout.jsx";
 import NotFound from "./pages/NotFound";
 import { LoaderProvider } from "./loader/LoaderContext.jsx";
 import Loader from "./loader/Loader.jsx";
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import { persistor, store } from "./store/store.js";
 import { ToastContainer, Bounce } from "react-toastify";
 import { PersistGate } from "redux-persist/integration/react";
@@ -30,6 +30,7 @@ import Category from "./pages/admin/Masters/Category.jsx";
 import Tax from "./pages/admin/Masters/Tax.jsx";
 import Color from "./pages/admin/Masters/Color.jsx";
 import TermsConditions from "./pages/admin/TermsConditions.jsx";
+import PromoCodeManagement from "./pages/tailor/PromoCode.jsx";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Tailor Pages
@@ -59,50 +60,20 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Auth Routes - Public */}
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <SignIn />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/tailor/register"
-        element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <PublicRoute>
-            <ForgotPassword />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/reset-password"
-        element={
-          <PublicRoute>
-            <AddNewPassword />
-          </PublicRoute>
-        }
-      />
+      <Route path="/login" element={<PublicRoute><SignIn /></PublicRoute>}/>
+      <Route path="/tailor/register" element={<PublicRoute><Register /></PublicRoute>}/>
+      <Route path="/forgot-password"element={<PublicRoute><ForgotPassword /></PublicRoute>}/>
+      <Route path="/reset-password" element={<PublicRoute><AddNewPassword /></PublicRoute>}/>
 
-      {/* Protected Routes with Layout - Only wrap the parent with ProtectedRoute */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        {/* Admin Portal Routes */}
-        <Route path="admin" element={<AdminPortal />}>
+      {/* Unauthorized Route */}
+      <Route path="/unauthorized" element={<NotFound />} />
+
+      {/* Protected Routes with Layout */}
+      <Route path="/" element={ <ProtectedRoute allowedRoles={["admin", "tailor"]}><Layout /></ProtectedRoute>}>
+
+
+      {/* Admin Portal Routes */}
+        <Route path="admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPortal /> </ProtectedRoute>}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="analytics" element={<Analytics />} />
@@ -122,7 +93,7 @@ const AppRoutes = () => {
         </Route>
 
         {/* Tailor Portal Routes */}
-        <Route path="tailor" element={<TailorPortal />}>
+        <Route path="tailor" element={<ProtectedRoute allowedRoles={["tailor"]}><TailorPortal /></ProtectedRoute>}>
           <Route path="dashboard" element={<TailorDashboard />} />
           <Route path="profile" element={<TailorProfile />} />
           <Route path="orders" element={<Orders />} />
@@ -132,11 +103,24 @@ const AppRoutes = () => {
           <Route path="analytics" element={<TailorAnalytics />} />
           <Route path="messages" element={<Messages />} />
           <Route path="master/size" element={<Size />} />
+          <Route path="promo-code" element={<PromoCodeManagement />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 
         {/* Redirect root to appropriate dashboard based on user role */}
-        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route
+          index
+          element={
+            <ProtectedRoute allowedRoles={["admin", "tailor"]}>
+              {useSelector((state: any) => state.store.currentUser?.user_role?.name) ===
+              "admin" ? (
+                <Navigate to="/admin/dashboard" replace />
+              ) : (
+                <Navigate to="/tailor/dashboard" replace />
+              )}
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* Catch-all route */}
@@ -168,13 +152,13 @@ const App = () => (
           <BrowserRouter>
             <LoaderProvider>
               <Loader />
-                <NotificationProvider>
-              <SocketProvider>
+              <NotificationProvider>
+                <SocketProvider>
                   <AuthProvider>
                     <AppRoutes />
                   </AuthProvider>
-              </SocketProvider>
-                </NotificationProvider>
+                </SocketProvider>
+              </NotificationProvider>
             </LoaderProvider>
           </BrowserRouter>
         </TooltipProvider>

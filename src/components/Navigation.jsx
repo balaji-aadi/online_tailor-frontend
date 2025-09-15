@@ -3,16 +3,12 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  BarChart3,
   FileText,
   UserCheck,
   Scissors,
   ShoppingBag,
   Star,
   MessageSquare,
-  Calendar,
-  Settings,
-  TrendingUp,
   Menu,
   X,
   Globe,
@@ -25,7 +21,8 @@ import {
   Target,
   Ruler,
   BadgePercent,
-  PaintBucket
+  PaintBucket,
+  Gift,
 } from 'lucide-react';
 import { useLanguage } from './Layout';
 
@@ -186,25 +183,15 @@ const Navigation = ({ type = 'admin' }) => {
     //   href: '/admin/disputes',
     //   icon: MessageSquare,
     // },
+    {
+      title: language === 'en' ? 'Promo Codes' : 'أكواد الخصم',
+      href: '/tailor/promo-code',
+      icon: Gift,
+    },
     // {
-    //   title: language === 'en' ? 'Portfolio' : 'معرض الأعمال',
-    //   href: '/tailor/portfolio',
+    //   title: language === 'en' ? 'Reviews' : 'المراجعات',
+    //   href: '/tailor/reviews',
     //   icon: Star,
-    // },
-    // {
-    //   title: language === 'en' ? 'Calendar' : 'التقويم',
-    //   href: '/tailor/calendar',
-    //   icon: Calendar,
-    // },
-    // {
-    //   title: language === 'en' ? 'Analytics' : 'التحليلات',
-    //   href: '/tailor/analytics',
-    //   icon: BarChart3,
-    // },
-    // {
-    //   title: language === 'en' ? 'Messages' : 'الرسائل',
-    //   href: '/tailor/messages',
-    //   icon: MessageSquare,
     // },
   ];
 
