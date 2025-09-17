@@ -4,7 +4,6 @@ import { Navigate } from "react-router-dom";
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { isAuthenticated } = useSelector((state) => state.store);
     const activeUser = useSelector((state) => state.store.currentUser);
-    console.log("activeUser",activeUser)
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
@@ -15,6 +14,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     return children;
 };
+
+
 export default ProtectedRoute;
 
 export const PublicRoute = ({ children }) => {

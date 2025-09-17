@@ -8,7 +8,7 @@ const ImageCarousel = ({ images, alt }) => {
         if (images.length > 1) {
             const timer = setInterval(() => {
                 setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-            }, 3000);
+            }, 5000);
 
             return () => clearInterval(timer);
         }

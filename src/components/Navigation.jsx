@@ -81,31 +81,16 @@ const Navigation = ({ type = 'admin' }) => {
       href: '/admin/users',
       icon: Users,
     },
-    // {
-    //   title: language === 'en' ? 'Analytics' : 'التحليلات',
-    //   href: '/admin/analytics',
-    //   icon: BarChart3,
-    // },
     {
       title: language === 'en' ? 'Tailor Verification' : 'تحقق من الخياطين',
       href: '/admin/verification',
       icon: UserCheck,
     },
-    // {
-    //   title: language === 'en' ? 'Content Management' : 'إدارة المحتوى',
-    //   href: '/admin/content',
-    //   icon: FileText,
-    // },
     {
       title: language === 'en' ? 'Disputes' : 'النزاعات',
       href: '/admin/disputes',
       icon: MessageSquare,
     },
-    // {
-    //   title: language === 'en' ? 'Reports' : 'التقارير',
-    //   href: '/admin/reports',
-    //   icon: TrendingUp,
-    // },
     {
       key: 'masters',
       title: language === 'en' ? 'Masters' : 'البيانات الرئيسية',
@@ -149,11 +134,11 @@ const Navigation = ({ type = 'admin' }) => {
       href: '/admin/terms-and-conditions',
       icon: FileText,
     },
-    // {
-    //   title: language === 'en' ? 'Settings' : 'الإعدادات',
-    //   href: '/admin/settings',
-    //   icon: Settings,
-    // },
+    {
+      title: language === 'en' ? 'Reviews' : 'المراجعات',
+      href: '/admin/reviews',
+      icon: Star,
+    },
   ];
 
   const tailorNavItems = [
@@ -188,11 +173,11 @@ const Navigation = ({ type = 'admin' }) => {
       href: '/tailor/promo-code',
       icon: Gift,
     },
-    // {
-    //   title: language === 'en' ? 'Reviews' : 'المراجعات',
-    //   href: '/tailor/reviews',
-    //   icon: Star,
-    // },
+    {
+      title: language === 'en' ? 'Reviews' : 'المراجعات',
+      href: '/tailor/reviews',
+      icon: Star,
+    },
   ];
 
   const navItems = type === 'admin' ? adminNavItems : tailorNavItems;
@@ -322,7 +307,7 @@ const Navigation = ({ type = 'admin' }) => {
         <div className="fixed top-0 left-0 right-0 bg-card border-b border-border p-4 flex items-center justify-between z-30 md:hidden">
           <button
             onClick={() => setIsOpen(true)}
-            className="p-1 rounded-md hover:bg-secondary"
+            className="p-1 rounded-md hover:bg-secondary hover:text-white"
           >
             <Menu className="w-6 h-6" />
           </button>

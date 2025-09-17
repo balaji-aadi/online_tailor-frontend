@@ -164,7 +164,6 @@ const SocketProvider = ({ children }) => {
 
     // Receive messages
     useEffect(() => {
-        console.log("i am here")
         // if (!socket || !userId || !receiverUID || !orderId) return;
 
         const payload = {

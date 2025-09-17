@@ -30,7 +30,7 @@ import Category from "./pages/admin/Masters/Category.jsx";
 import Tax from "./pages/admin/Masters/Tax.jsx";
 import Color from "./pages/admin/Masters/Color.jsx";
 import TermsConditions from "./pages/admin/TermsConditions.jsx";
-import PromoCodeManagement from "./pages/tailor/PromoCode.jsx";
+import Reviews from "./pages/admin/Reviews.jsx";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Tailor Pages
@@ -43,6 +43,8 @@ import Calendar from "./pages/tailor/Calendar.jsx";
 import TailorAnalytics from "./pages/tailor/Analytics.jsx";
 import Messages from "./pages/tailor/Messages.jsx";
 import Size from "./pages/tailor/Master/Size.jsx";
+import PromoCodeManagement from "./pages/tailor/PromoCode.jsx";
+import TailorReviews from "./pages/tailor/Reviews.jsx";
 
 // Portal Layouts
 import AdminPortal from "./pages/admin/AdminPortal.jsx";
@@ -71,7 +73,6 @@ const AppRoutes = () => {
       {/* Protected Routes with Layout */}
       <Route path="/" element={ <ProtectedRoute allowedRoles={["admin", "tailor"]}><Layout /></ProtectedRoute>}>
 
-
       {/* Admin Portal Routes */}
         <Route path="admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPortal /> </ProtectedRoute>}>
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -89,6 +90,7 @@ const AppRoutes = () => {
           <Route path="master/tax" element={<Tax />} />
           <Route path="master/color" element={<Color />} />
           <Route path="terms-and-conditions" element={<TermsConditions />} />
+          <Route path="reviews" element={<Reviews />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 
@@ -104,6 +106,7 @@ const AppRoutes = () => {
           <Route path="messages" element={<Messages />} />
           <Route path="master/size" element={<Size />} />
           <Route path="promo-code" element={<PromoCodeManagement />} />
+          <Route path="reviews" element={<TailorReviews />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 

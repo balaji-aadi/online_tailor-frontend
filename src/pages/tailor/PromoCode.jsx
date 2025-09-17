@@ -11,6 +11,7 @@ import {
     MdAttachMoney,
     MdPercent,
     MdAutorenew,
+    MdAccessTime,
 } from 'react-icons/md';
 import { FaRegEdit, FaPlus, FaTimes, FaCamera } from 'react-icons/fa';
 import InputField from '../../components/ui/InputField';
@@ -26,7 +27,7 @@ import AlphaButton from '../../components/ui/AlphaButton';
 
 const translations = {
     en: {
-        title: 'Promo Code Management',
+        title: 'Promo Codes',
         addPromoCode: 'Add Promo Code',
         editPromoCode: 'Edit Promo Code',
         createPromoCode: 'Create New Promo Code',
@@ -42,6 +43,9 @@ const translations = {
         minOrderAmount: 'Minimum Order Amount',
         startDate: 'Start Date',
         endDate: 'End Date',
+        startTime: 'Start Time',
+        endTime: 'End Time',
+        durationHours: 'Duration (Hours)',
         maxUses: 'Maximum Uses',
         description: 'Description',
         onlyForNewUsers: 'Only For New Users',
@@ -73,7 +77,12 @@ const translations = {
         saving: 'Saving...',
         cancel: 'Cancel',
         allServices: 'All Services',
-        allSubServices: 'All Sub-Services'
+        allSubServices: 'All Sub-Services',
+        timeSettings: 'Time Settings',
+        useDuration: 'Use Duration Hours',
+        useTimeRange: 'Use Time Range',
+        durationHelp: 'Promo code will be valid for the specified hours from start',
+        timeRangeHelp: 'Set specific start and end times for the promo code',
     },
     ar: {
         title: 'إدارة أكواد الخصم',
@@ -92,6 +101,9 @@ const translations = {
         minOrderAmount: 'الحد الأدنى للطلب',
         startDate: 'تاريخ البدء',
         endDate: 'تاريخ الانتهاء',
+        startTime: 'وقت البدء',
+        endTime: 'وقت الانتهاء',
+        durationHours: 'المدة (ساعات)',
         maxUses: 'الحد الأقصى للاستخدام',
         description: 'الوصف',
         onlyForNewUsers: 'للمستخدمين الجدد فقط',
@@ -123,7 +135,12 @@ const translations = {
         saving: 'جاري الحفظ...',
         cancel: 'إلغاء',
         allServices: 'جميع الخدمات',
-        allSubServices: 'جميع الخدمات الفرعية'
+        allSubServices: 'جميع الخدمات الفرعية',
+        timeSettings: 'إعدادات الوقت',
+        useDuration: 'استخدام مدة الساعات',
+        useTimeRange: 'استخدام نطاق زمني',
+        durationHelp: 'سيكون كود الخصم ساريًا لعدد الساعات المحدد من وقت البدء',
+        timeRangeHelp: 'حدد أوقات بدء وانتهاء محددة لكود الخصم',
     }
 };
 
@@ -147,15 +164,17 @@ const PromoCodeManagement = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [services, setServices] = useState([]);
     const [subServices, setSubServices] = useState([]);
+    const [timeOption, setTimeOption] = useState('duration');
     const { language } = useLanguage();
 
     const t = translations[language || 'en'];
     const formatDate = (isoString) => isoString?.split('T')[0];
+    const formatTime = (timeString) => timeString ? timeString.substring(0, 5) : '';
 
     const fetchPromoCodes = async () => {
         try {
             const res = await PromoCodeApi.getAllPromoCodes();
-            setPromoCodes(res.data?.data || []);
+            setPromoCodes(res.data?.data?.data || []);
         } catch (err) {
             console.error('Error fetching promo codes:', err);
         }
@@ -170,6 +189,8 @@ const PromoCodeManagement = () => {
         }
     };
 
+    console.log(timeOption)
+
     const fetchSubServices = async (serviceIds) => {
         if (!serviceIds || serviceIds.length === 0) {
             setSubServices([]);
@@ -177,15 +198,12 @@ const PromoCodeManagement = () => {
         }
 
         try {
-            // Fetch sub-services for all selected services
             const subServicesPromises = serviceIds.map(serviceId =>
                 TailorServiceApi.getAllServices({ "serviceType": serviceId })
             );
 
             const results = await Promise.all(subServicesPromises);
             const allSubServices = results.flatMap(result => result.data?.data || []);
-
-            // Remove duplicates by ID
             const uniqueSubServices = allSubServices.filter((subService, index, self) =>
                 index === self.findIndex(s => s._id === subService._id)
             );
@@ -217,11 +235,69 @@ const PromoCodeManagement = () => {
             .min(0, 'Minimum order cannot be negative')
             .required(t.minOrderRequired),
         startDate: Yup.date()
-            .required(t.startDateRequired)
-            .min(new Date(), 'Start date cannot be in the past'),
+            .required(t.startDateRequired),
         endDate: Yup.date()
-            .required(t.endDateRequired)
-            .min(Yup.ref('startDate'), 'End date must be after start date'),
+            .test('end-date', 'End date must be after start date', function (value) {
+                const { durationHours } = this.parent;
+                if (!durationHours && !value) {
+                    return this.createError({ message: t.endDateRequired });
+                }
+                if (!durationHours && value && new Date(value) <= new Date(this.parent.startDate)) {
+                    return false;
+                }
+                return true;
+            }),
+        startTime: Yup.string()
+            .test('start-time', 'Start time is required when using time range', function (value) {
+                const { durationHours, endTime } = this.parent;
+                return !durationHours && endTime ? !!value : true;
+            }),
+        endTime: Yup.string()
+            .test('end-time', 'End time is required when using time range', function (value) {
+                const { durationHours, startTime } = this.parent;
+                return !durationHours && startTime ? !!value : true;
+            }),
+        durationHours: Yup.number()
+            .min(1, 'Duration must be at least 1 hour')
+            .test('duration-hours', 'Duration is required when not using time range', function (value) {
+                const { startTime, endTime } = this.parent;
+                return !startTime && !endTime ? !!value : true;
+            }),
+        maxUses: Yup.number()
+            .min(1, 'Must allow at least 1 use')
+            .required(t.maxUsesRequired),
+        description: Yup.string()
+            .required(t.descriptionRequired),
+    });
+
+    const durationValidationSchema = Yup.object({
+        code: Yup.string()
+            .required(t.codeRequired)
+            .min(4, t.codeMin)
+            .max(20, t.codeMax),
+        service: Yup.array()
+            .min(1, t.serviceRequired)
+            .required(t.serviceRequired),
+        discountType: Yup.string()
+            .oneOf(['Percentage', 'Fixed_Amount'], 'Invalid discount type')
+            .required(t.discountTypeRequired),
+        discountValue: Yup.number()
+            .typeError('Discount must be a number')
+            .required(t.discountValueRequired)
+            .min(0, 'Discount cannot be less than 0%')
+            .max(100, 'Discount cannot exceed 100%'),
+        minOrderAmount: Yup.number()
+            .min(0, 'Minimum order cannot be negative')
+            .required(t.minOrderRequired),
+        // startDate: Yup.date()
+        //     .required(t.startDateRequired),
+        
+        durationHours: Yup.number()
+            .min(1, 'Duration must be at least 1 hour')
+            .test('duration-hours', 'Duration is required when not using time range', function (value) {
+                const { startTime, endTime } = this.parent;
+                return !startTime && !endTime ? !!value : true;
+            }),
         maxUses: Yup.number()
             .min(1, 'Must allow at least 1 use')
             .required(t.maxUsesRequired),
@@ -232,30 +308,30 @@ const PromoCodeManagement = () => {
     const formik = useFormik({
         initialValues: {
             code: selectedPromo?.code || generatedCode,
-            service: selectedPromo?.service ? (Array.isArray(selectedPromo.service) ? selectedPromo.service : [selectedPromo.service]) : [],
-            subService: selectedPromo?.subService ? (Array.isArray(selectedPromo.subService) ? selectedPromo.subService : [selectedPromo.subService]) : [],
+            service: selectedPromo?.service ? (Array.isArray(selectedPromo.service) ? selectedPromo.service.map(item => item._id) : [selectedPromo.service]) : [],
+            subService: selectedPromo?.subService ? (Array.isArray(selectedPromo.subService) ? selectedPromo.subService?.map(item => item?._id) : [selectedPromo.subService]) : [],
             discountType: selectedPromo?.discountType || '',
-            discountValue: selectedPromo?.discountValue?.$numberDecimal || '',
-            minOrderAmount: selectedPromo?.minOrderAmount?.$numberDecimal || '',
-            startDate: selectedPromo?.startDate || '',
-            endDate: selectedPromo?.endDate || '',
-            maxUses: selectedPromo?.maxUses?.$numberDecimal || '',
+            discountValue: selectedPromo?.discountValue || '',
+            minOrderAmount: selectedPromo?.minOrderAmount || '',
+            startDate: selectedPromo?.startDate ? formatDate(selectedPromo.startDate) : '',
+            endDate: selectedPromo?.endDate ? formatDate(selectedPromo.endDate) : '',
+            startTime: selectedPromo?.startTime ? formatTime(selectedPromo.startTime) : '',
+            endTime: selectedPromo?.endTime ? formatTime(selectedPromo.endTime) : '',
+            durationHours: selectedPromo?.durationHours || '',
+            maxUses: selectedPromo?.maxUses || '',
             description: selectedPromo?.description || '',
             isActive: selectedPromo?.isActive ?? true,
             onlyForNewUsers: selectedPromo?.onlyForNewUsers || false,
             image: selectedPromo?.image || '',
         },
-        validationSchema: validationSchema,
+        validationSchema: timeOption === "duration" ? durationValidationSchema : validationSchema,
         enableReinitialize: true,
         onSubmit: async (values) => {
             setIsLoading(true);
             try {
                 const formData = new FormData();
 
-                // Append all fields
                 formData.append('code', values.code);
-
-                // Append services and subservices as arrays
                 values.service.forEach(serviceId => {
                     formData.append('service', serviceId);
                 });
@@ -267,8 +343,34 @@ const PromoCodeManagement = () => {
                 formData.append('discountType', values.discountType);
                 formData.append('discountValue', values.discountValue);
                 formData.append('minOrderAmount', values.minOrderAmount);
-                formData.append('startDate', new Date(values.startDate).toISOString());
-                formData.append('endDate', new Date(values.endDate).toISOString());
+
+                if (timeOption === 'duration') {
+                    const today = new Date();
+                    formData.append('startDate', today.toISOString());
+                    formData.append('durationHours', values.durationHours || "");
+                    formData.append('startTime', '');
+                    formData.append('endTime', '');
+                    formData.append('endDate', '');
+                } else {
+                    const startDate = new Date(values.startDate);
+                    const endDate = new Date(values.endDate);
+
+                    if (isNaN(startDate.getTime()) || !values.startDate) {
+                        throw new Error(t.startDateRequired);
+                    }
+                    if (isNaN(endDate.getTime()) || !values.endDate) {
+                        throw new Error(t.endDateRequired);
+                    }
+                    if (startDate >= endDate) {
+                        throw new Error('End date must be after start date');
+                    }
+
+                    formData.append('startDate', startDate.toISOString());
+                    formData.append('endDate', endDate.toISOString());
+                    formData.append('startTime', values.startTime);
+                    formData.append('endTime', values.startTime);
+                    formData.append('durationHours', '');
+                }
                 formData.append('maxUses', values.maxUses);
                 formData.append('description', values.description);
                 formData.append('isActive', values.isActive);
@@ -299,6 +401,29 @@ const PromoCodeManagement = () => {
             }
         },
     });
+
+    useEffect(() => {
+        if (timeOption === 'duration') {
+            const today = new Date();
+            formik.setFieldValue('startDate', today.toISOString().split('T')[0]);
+            formik.setFieldValue('endDate', '');
+            formik.setFieldValue('startTime', '');
+            formik.setFieldValue('endTime', '');
+        } else if (timeOption === 'timeRange') {
+            // if (!formik.values.startDate) {
+            //     const today = new Date();
+            //     formik.setFieldValue('startDate', today.toISOString().split('T')[0]);
+            // }
+            // if (!formik.values.endDate) {
+            //     const endDate = new Date();
+            //     formik.setFieldValue('endDate', endDate.toISOString().split('T')[0]);
+            // }
+            // if (formik.values.startTime && !formik.values.endTime) {
+            //     formik.setFieldValue('endTime', formik.values.startTime);
+            // }
+            formik.setFieldValue('durationHours', '');
+        }
+    }, [timeOption]);
 
     const removeImage = () => {
         setImagePreview(null);
@@ -343,6 +468,16 @@ const PromoCodeManagement = () => {
             setSubServices([]);
         }
     }, [formik.values.service]);
+
+    useEffect(() => {
+        if (selectedPromo) {
+            if (selectedPromo.durationHours) {
+                setTimeOption('duration');
+            } else if (selectedPromo.startTime && selectedPromo.endTime) {
+                setTimeOption('timeRange');
+            }
+        }
+    }, [selectedPromo]);
 
     const handleDelete = async () => {
         if (!deleteModal) return;
@@ -421,14 +556,21 @@ const PromoCodeManagement = () => {
         }
     };
 
-    // Helper function to get service/subservice names for display
     const getNamesForDisplay = (ids, allItems) => {
         if (!ids || !allItems) return [];
-
         return ids.map(id => {
             const item = allItems.find(item => item._id === id);
-            return item ? (item.serviceName || item.name) : id;
+            return item ? item.name : id;
         });
+    };
+
+    const formatPromoTimeDisplay = (promo) => {
+        if (promo.durationHours) {
+            return `${promo.durationHours} ${language === 'ar' ? 'ساعة' : 'hours'}`;
+        } else if (promo.startTime && promo.endTime) {
+            return `${formatTime(promo.startTime)} - ${formatTime(promo.endTime)}`;
+        }
+        return '';
     };
 
     return (
@@ -443,7 +585,7 @@ const PromoCodeManagement = () => {
                             setSelectedPromo(null);
                             setOpenSidebar(true);
                         }}
-                        className='px-6 py-3'
+                        className='px-6 py-3 bg-primary hover:bg-primary-hover text-white'
                     />
                 </div>
 
@@ -467,13 +609,13 @@ const PromoCodeManagement = () => {
                                     animate='visible'
                                     exit='hidden'
                                     whileHover='hover'
-                                    className='bg-white rounded-xl shadow-md overflow-hidden border border-gray-100'
+                                    className='bg-white rounded-xl shadow-soft overflow-hidden border border-gray-100 hover:shadow-elegant transition-shadow duration-300'
                                 >
                                     <div className='p-6'>
                                         <div className='flex justify-between items-start mb-4'>
                                             <div className='flex items-center'>
-                                                <div className='bg-indigo-100 p-3 rounded-full mr-4'>
-                                                    <MdDiscount className='text-indigo-600 text-2xl' />
+                                                <div className='bg-primary-light p-3 rounded-full mr-4'>
+                                                    <MdDiscount className='text-primary text-2xl' />
                                                 </div>
                                                 <div>
                                                     <h3 className='text-xl font-bold text-gray-800'>{promo.code}</h3>
@@ -487,7 +629,7 @@ const PromoCodeManagement = () => {
                                             <div className='flex space-x-2'>
                                                 <button
                                                     onClick={() => copyToClipboard(promo.code)}
-                                                    className='text-gray-500 hover:text-indigo-600 cursor-pointer transition-colors'
+                                                    className='text-gray-500 hover:text-primary cursor-pointer transition-colors'
                                                     title={t.copyCode}
                                                 >
                                                     <MdOutlineContentCopy size={20} />
@@ -497,7 +639,7 @@ const PromoCodeManagement = () => {
                                                         setSelectedPromo(promo);
                                                         setOpenSidebar(true);
                                                     }}
-                                                    className='text-gray-500 cursor-pointer hover:text-indigo-600 transition-colors'
+                                                    className='text-gray-500 cursor-pointer hover:text-primary transition-colors'
                                                     title={language === 'ar' ? 'تعديل' : 'Edit'}
                                                 >
                                                     <FaRegEdit size={18} />
@@ -514,33 +656,28 @@ const PromoCodeManagement = () => {
 
                                         <div className='flex items-center justify-between mb-3'>
                                             <div className='flex items-center'>
-                                                {promo.discountType === 'Percentage' ? (
-                                                    <MdPercent className='text-green-500 mr-1' size={20} />
-                                                ) : (
-                                                    <MdAttachMoney className='text-green-500 mr-1' size={20} />
-                                                )}
                                                 <span className='font-bold text-gray-800'>
-                                                    {promo.discountValue?.$numberDecimal}
+                                                    {promo.discountValue}
                                                     {promo.discountType === 'Percentage' ? '%' : ''} off
                                                 </span>
                                             </div>
-                                            <div className='text-sm text-gray-500'>
-                                                {language === 'ar' ? 'الحد الأدنى للطلب: ' : 'Min. order: '}
-                                                <AEDPrice value={promo.minOrderAmount?.$numberDecimal} />
+                                            <div className='text-sm text-gray-500 flex'>
+                                                {language === 'ar' ? 'الحد الأدنى للطلب: ' : 'Min. order : '}
+                                                <AEDPrice value={promo.minOrderAmount} />
                                             </div>
                                         </div>
 
                                         {serviceNames.length > 0 && (
-                                            <div className='text-sm text-gray-500 mb-2'>
-                                                {language === 'ar' ? 'الخدمات: ' : 'Services: '}
-                                                {serviceNames.join(', ')}
+                                            <div className="text-sm text-gray-500 mb-2 capitalize">
+                                                <span className='font-semibold'>{language === "ar" ? "الخدمات: " : "Services: "}</span>
+                                                {serviceNames.map((item) => item?.name).join(", ")}
                                             </div>
                                         )}
 
                                         {subServiceNames.length > 0 && (
                                             <div className='text-sm text-gray-500 mb-2'>
-                                                {language === 'ar' ? 'الخدمات الفرعية: ' : 'Sub-Services: '}
-                                                {subServiceNames.join(', ')}
+                                                <span className='font-semibold'>{language === 'ar' ? 'الخدمات الفرعية: ' : 'Sub-Services: '}</span>
+                                                {subServiceNames.map((item) => item?.serviceName).join(", ")}
                                             </div>
                                         )}
 
@@ -555,15 +692,22 @@ const PromoCodeManagement = () => {
                                             </div>
                                         </div>
 
+                                        {formatPromoTimeDisplay(promo) && (
+                                            <div className='flex items-center text-sm text-gray-500 mb-2'>
+                                                <MdAccessTime className='mr-1' size={16} />
+                                                <span>{formatPromoTimeDisplay(promo)}</span>
+                                            </div>
+                                        )}
+
                                         <div className='mt-4 pt-4 border-t border-gray-100 flex justify-between items-center'>
                                             <div className='text-sm'>
                                                 <span className='font-medium'>{language === 'ar' ? 'الاستخدامات: ' : 'Uses: '}</span>
-                                                <span className='text-gray-500'>{parseInt(promo.maxUses?.$numberDecimal)}</span>
+                                                <span className='text-gray-500'>{parseInt(promo.maxUses)}</span>
                                             </div>
                                             {promo.isActive && (
                                                 <button
                                                     onClick={() => copyToClipboard(promo.code)}
-                                                    className='text-sm cursor-pointer text-indigo-600 hover:text-indigo-800 font-medium'
+                                                    className='text-sm cursor-pointer text-primary hover:text-primary-hover font-medium'
                                                 >
                                                     {t.copyCode}
                                                 </button>
@@ -582,8 +726,8 @@ const PromoCodeManagement = () => {
                         animate={{ opacity: 1 }}
                         className='flex flex-col items-center justify-center py-12'
                     >
-                        <div className='bg-indigo-100 p-6 rounded-full mb-4'>
-                            <MdDiscount className='text-indigo-600 text-4xl' />
+                        <div className='bg-primary-light p-6 rounded-full mb-4'>
+                            <MdDiscount className='text-primary text-4xl' />
                         </div>
                         <h3 className='text-xl font-medium text-gray-800 mb-2'>{t.noPromoCodes}</h3>
                         <p className='text-gray-500 mb-6'>
@@ -593,6 +737,7 @@ const PromoCodeManagement = () => {
                             text={t.addPromoCode}
                             icon={<FaPlus className='mr-2' />}
                             onClick={() => setOpenSidebar(true)}
+                            className='bg-primary hover:bg-primary-hover text-white'
                         />
                     </motion.div>
                 )}
@@ -614,6 +759,7 @@ const PromoCodeManagement = () => {
                         cancelText={t.cancel}
                         size="lg"
                         isLoading={isLoading}
+                        saveButtonClass="bg-primary hover:bg-primary-hover text-white"
                     >
                         <form onSubmit={formik.handleSubmit} className='space-y-4'>
                             <div className='flex flex-col items-center mb-6'>
@@ -646,7 +792,7 @@ const PromoCodeManagement = () => {
                                     </div>
 
                                     <label className='mt-4 cursor-pointer'>
-                                        <span className='px-4 py-2 bg-primary ml-2 text-white rounded-lg hover:bg-primary-dark transition-colors duration-200 text-sm'>
+                                        <span className='px-4 py-2 bg-primary ml-2 text-white rounded-lg hover:bg-primary-hover transition-colors duration-200 text-sm'>
                                             {imagePreview ? (language === 'ar' ? 'تغيير الصورة' : 'Change Photo') : (language === 'ar' ? 'رفع صورة' : 'Upload Photo')}
                                         </span>
                                         <input
@@ -679,7 +825,7 @@ const PromoCodeManagement = () => {
                                     <button
                                         type='button'
                                         onClick={handleGenerateNewCode}
-                                        className='absolute right-3 top-0 cursor-pointer text-gray-500 hover:text-indigo-600 transition-colors'
+                                        className='absolute right-3 top-0 cursor-pointer text-gray-500 hover:text-primary transition-colors'
                                         title={language === 'ar' ? 'إنشاء كود جديد' : 'Generate new code'}
                                     >
                                         <MdAutorenew size={20} />
@@ -780,87 +926,178 @@ const PromoCodeManagement = () => {
                                 icon={<MdAttachMoney />}
                             />
 
-                            <div className='grid grid-cols-2 gap-4'>
-                                <InputField
-                                    name='startDate'
-                                    label={t.startDate}
-                                    type='date'
-                                    value={formatDate(formik.values.startDate)}
-                                    onChange={formik.handleChange}
-                                    error={formik.touched.startDate && formik.errors.startDate}
-                                    isRequired
-                                />
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                                <h3 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
+                                    <MdAccessTime className="mr-2" />
+                                    {t.timeSettings}
+                                </h3>
 
-                                <InputField
-                                    name='endDate'
-                                    label={t.endDate}
-                                    type='date'
-                                    value={formatDate(formik.values.endDate)}
-                                    onChange={formik.handleChange}
-                                    error={formik.touched.endDate && formik.errors.endDate}
-                                    isRequired
-                                />
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div
+                                        className={`p-4 border rounded-lg cursor-pointer transition-all ${timeOption === 'duration'
+                                            ? 'border-primary bg-primary-light'
+                                            : 'border-gray-300 hover:border-gray-400'
+                                            }`}
+                                        onClick={() => setTimeOption('duration')}
+                                    >
+                                        <div className="flex items-center mb-2">
+                                            <input
+                                                type="radio"
+                                                checked={timeOption === 'duration'}
+                                                onChange={() => setTimeOption('duration')}
+                                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                                            />
+                                            <label className="ml-2 font-medium text-gray-700">
+                                                {t.useDuration}
+                                            </label>
+                                        </div>
+                                        <p className="text-sm text-gray-500">{t.durationHelp}</p>
+                                    </div>
+
+                                    <div
+                                        className={`p-4 border rounded-lg cursor-pointer transition-all ${timeOption === 'timeRange'
+                                            ? 'border-primary bg-primary-light'
+                                            : 'border-gray-300 hover:border-gray-400'
+                                            }`}
+                                        onClick={() => setTimeOption('timeRange')}
+                                    >
+                                        <div className="flex items-center mb-2">
+                                            <input
+                                                type="radio"
+                                                checked={timeOption === 'timeRange'}
+                                                onChange={() => setTimeOption('timeRange')}
+                                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                                            />
+                                            <label className="ml-2 font-medium text-gray-700">
+                                                {t.useTimeRange}
+                                            </label>
+                                        </div>
+                                        <p className="text-sm text-gray-500">{t.timeRangeHelp}</p>
+                                    </div>
+                                </div>
+
+                                {timeOption === 'duration' ? (
+                                    <InputField
+                                        name='durationHours'
+                                        label={t.durationHours}
+                                        type='number'
+                                        placeholder='Enter duration in hours'
+                                        value={formik.values.durationHours}
+                                        onChange={formik.handleChange}
+                                        error={formik.touched.durationHours && formik.errors.durationHours}
+                                        isRequired={timeOption === 'duration'}
+                                        min="1"
+                                    />
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <InputField
+                                            name='startTime'
+                                            label={t.startTime}
+                                            type='time'
+                                            value={formik.values.startTime}
+                                            onChange={(e) => {
+                                                formik.handleChange(e);
+                                                // Automatically set endTime to match startTime
+                                                formik.setFieldValue('endTime', e.target.value);
+                                            }}
+                                            error={formik.touched.startTime && formik.errors.startTime}
+                                            isRequired={timeOption === 'timeRange'}
+                                        />
+                                        {/* <InputField
+                                            name='endTime'
+                                            label={t.endTime}
+                                            type='time'
+                                            value={formik.values.endTime}
+                                            onChange={formik.handleChange}
+                                            error={formik.touched.endTime && formik.errors.endTime}
+                                            isRequired={timeOption === 'timeRange'}
+                                            disabled={true} // Disable endTime as it should match startTime
+                                        /> */}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className='grid grid-cols-2 gap-4'>
+                                {timeOption === 'timeRange' && (
+                                    <>
+                                        <InputField
+                                            name='startDate'
+                                            label={t.startDate}
+                                            type='date'
+                                            value={formik.values.startDate}
+                                            onChange={formik.handleChange}
+                                            error={formik.touched.startDate && formik.errors.startDate}
+                                            isRequired
+                                        />
+
+                                        <InputField
+                                            name='endDate'
+                                            label={t.endDate}
+                                            type='date'
+                                            value={formik.values.endDate}
+                                            onChange={formik.handleChange}
+                                            error={formik.touched.endDate && formik.errors.endDate}
+                                            isRequired={timeOption === 'timeRange'}
+                                        />
+                                    </>
+                                )}
                             </div>
 
                             <InputField
                                 name='maxUses'
                                 label={t.maxUses}
                                 type='number'
-                                placeholder='set maximum uses of PROMO CODE'
+                                placeholder='set Maximum Uses'
                                 value={formik.values.maxUses}
                                 onChange={formik.handleChange}
                                 error={formik.touched.maxUses && formik.errors.maxUses}
                                 isRequired
                             />
 
-                            <div className="flex items-center justify-between">
-                                <label htmlFor='onlyForNewUsers' className="text-sm font-medium text-gray-700">
-                                    {t.onlyForNewUsers}
-                                </label>
-                                <input
-                                    id='onlyForNewUsers'
-                                    name='onlyForNewUsers'
-                                    type='checkbox'
-                                    checked={formik.values.onlyForNewUsers}
-                                    onChange={formik.handleChange}
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <label htmlFor='isActive' className="text-sm font-medium text-gray-700">
-                                    {t.isActive}
-                                </label>
-                                <input
-                                    id='isActive'
-                                    name='isActive'
-                                    type='checkbox'
-                                    checked={formik.values.isActive}
-                                    onChange={formik.handleChange}
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                />
-                            </div>
-
                             <InputField
                                 name='description'
                                 label={t.description}
                                 type='textarea'
+                                placeholder='Enter description'
                                 value={formik.values.description}
                                 onChange={formik.handleChange}
                                 error={formik.touched.description && formik.errors.description}
                                 isRequired
+                                rows={3}
                             />
+
+                            <div className='grid grid-cols-2 gap-4'>
+                                <InputField
+                                    name='onlyForNewUsers'
+                                    label={t.onlyForNewUsers}
+                                    type='checkbox'
+                                    checked={formik.values.onlyForNewUsers}
+                                    onChange={formik.handleChange}
+                                />
+
+                                <InputField
+                                    name='isActive'
+                                    label={t.isActive}
+                                    type='checkbox'
+                                    checked={formik.values.isActive}
+                                    onChange={formik.handleChange}
+                                />
+                            </div>
                         </form>
                     </CommonModal>
                 )}
 
                 {deleteModal && (
                     <DeleteModal
-                        deleteModal={deleteModal}
-                        setDeleteModal={setDeleteModal}
-                        handleDelete={handleDelete}
+                        isOpen={!!deleteModal}
+                        onClose={() => setDeleteModal(false)}
+                        onConfirm={handleDelete}
                         title={t.deleteConfirm}
-                        message={`${t.deleteConfirm} "${deleteModal.code}"?`}
+                        confirmText={language === 'ar' ? 'نعم، احذف' : 'Yes, Delete'}
+                        cancelText={language === 'ar' ? 'إلغاء' : 'Cancel'}
+                        description={language === 'ar'
+                            ? 'هل أنت متأكد أنك تريد حذف هذا الكود الترويجي؟ لا يمكن التراجع عن هذا الإجراء.'
+                            : 'Are you sure you want to delete this promo code? This action cannot be undone.'}
                     />
                 )}
             </div>
